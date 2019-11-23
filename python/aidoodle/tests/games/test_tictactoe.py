@@ -1,3 +1,5 @@
+import dataclasses
+
 import pytest
 
 
@@ -34,7 +36,13 @@ def board_row_win(ttt):
 @pytest.fixture
 def board_diag_win(ttt):
     # player 2 wins through diag 2
-    return ttt.Board(((1, 1, 2), (1, 2, 1), (2, 0, 2)))
+    return ttt.Board(((2, 0, 0), (1, 2, 1), (0, 1, 2)))
+
+
+@pytest.fixture
+def board_tied(ttt):
+    # no-one wins and there are no more legal moves
+    return ttt.Board(((1, 2, 1), (1, 2, 2), (2, 1, 1)))
 
 
 class TestBoardWinner:
@@ -42,20 +50,35 @@ class TestBoardWinner:
     def determine_winner(self, ttt):
         return ttt.determine_winner
 
-    def test_winner_empty(self, board_empty, determine_winner):
-        assert determine_winner(board_empty) is None
+    def test_winner_empty(self, ttt, board_empty, determine_winner):
+        game = ttt.init_game()
+        game = dataclasses.replace(game, board=board_empty)
+        assert determine_winner(game) is None
 
-    def test_winner_non_emplty(self, board_non_empty, determine_winner):
-        assert determine_winner(board_non_empty) is None
+    def test_winner_non_empty(self, ttt, board_non_empty, determine_winner):
+        game = ttt.init_game()
+        game = dataclasses.replace(game, board=board_non_empty)
+        assert determine_winner(game) is None
 
-    def test_winner_col(self, board_col_win, determine_winner):
-        assert determine_winner(board_col_win) == 1
+    def test_winner_col(self, ttt, board_col_win, determine_winner):
+        game = ttt.init_game()
+        game = dataclasses.replace(game, board=board_col_win)
+        assert determine_winner(game) == 1
 
-    def test_winner_row(self, board_row_win, determine_winner):
-        assert determine_winner(board_row_win) == 1
+    def test_winner_row(self, ttt, board_row_win, determine_winner):
+        game = ttt.init_game()
+        game = dataclasses.replace(game, board=board_row_win)
+        assert determine_winner(game) == 1
 
-    def test_winner_diag(self, board_diag_win, determine_winner):
-        assert determine_winner(board_diag_win) == 2
+    def test_winner_diag(self, ttt, board_diag_win, determine_winner):
+        game = ttt.init_game()
+        game = dataclasses.replace(game, board=board_diag_win)
+        assert determine_winner(game) == 2
+
+    def test_winner_tied(self, ttt, board_tied, determine_winner):
+        game = ttt.init_game()
+        game = dataclasses.replace(game, board=board_tied)
+        assert determine_winner(game) == -1
 
 
 class TestLegalMoves:
@@ -65,17 +88,17 @@ class TestLegalMoves:
 
     def test_moves_board_empty(self, ttt, board_empty, get_legal_moves):
         game = ttt.init_game()
-        game.board = board_empty
+        game = dataclasses.replace(game, board=board_empty)
         assert set(get_legal_moves(game)) == ttt.POSSIBLE_MOVES
 
     def test_moves_board_non_empty(self, ttt, board_non_empty, get_legal_moves):
         game = ttt.init_game()
-        game.board = board_non_empty
+        game = dataclasses.replace(game, board=board_non_empty)
         assert get_legal_moves(game) == [(0, 0)]
 
     def test_no_moves(self, ttt, board_row_win, get_legal_moves):
         game = ttt.init_game()
-        game.board = board_row_win
+        game = dataclasses.replace(game, board=board_row_win)
         assert get_legal_moves(game) == []
 
 

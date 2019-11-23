@@ -1,29 +1,24 @@
 from dataclasses import dataclass
+from functools import total_ordering
 from itertools import product
 import random
+import sys
 from typing import Any, List, Tuple, Optional, Generator, Set, Union
 
 
-POSSIBLE_PLAYERS: Set[int] = {1, 2}
+POSSIBLE_PLAYERS: Set[int] = {-1, 1, 2}  # -1 <- tied
 POSSIBLE_MOVES: Set[Tuple[int, int]] = set(product(range(3), range(3)))
 
 
-class Player(int):
-    def __init__(self, i: int):
-        if i not in POSSIBLE_PLAYERS:
-            raise ValueError
-        super().__init__()
-
-    def __repr__(self) -> str:
-        return f"Player({self})"
-
-
+@dataclass(frozen=True)
+@total_ordering
 class Move:
-    def __init__(self, i: int, j: int):
-        if (i, j) not in POSSIBLE_MOVES:
+    i: int
+    j: int
+
+    def __post_init__(self) -> None:
+        if (self.i, self.j) not in POSSIBLE_MOVES:
             raise ValueError
-        self.i = i
-        self.j = j
 
     def __repr__(self) -> str:
         return f"Move({self.i}, {self.j})"
@@ -41,8 +36,74 @@ class Move:
         except TypeError:
             return False
 
+    def __lt__(self, other: Any) -> bool:
+        return (self.i, self.j) < (other.i, other.j)
+
     def __hash__(self) -> int:
         return hash((self.i, self.j))
+
+
+class Agent:
+    def next_move(self, game: 'Game') -> Move:
+        raise NotImplementedError
+
+    def __repr__(self) -> str:
+        return self.__class__.__name__
+
+
+class RandomAgent(Agent):
+    def next_move(self, game: 'Game') -> Move:
+        legal_moves = get_legal_moves(game)
+        return random.choice(legal_moves)
+
+
+class CliInputAgent(Agent):
+    def _ask_input(self) -> Move:
+        inp = input("choose next move: ")
+        if inp == 'q':
+            sys.exit(0)
+
+        try:
+            move = Move(*eval(inp))
+        except (TypeError, NameError):
+            sys.exit(1)
+        return move
+
+    def next_move(self, game: 'Game') -> Move:
+        moves = get_legal_moves(game)
+        print("possible moves: ", sorted(moves), flush=True)
+
+        move = self._ask_input()
+        while move not in moves:
+            move = self._ask_input()
+
+        print(f"performing move {move}", flush=True)
+        return move
+
+
+@dataclass(frozen=True)
+class Player:
+    i: int
+    agent: Agent = RandomAgent()
+
+    def __post_init__(self) -> None:
+        if self.i not in POSSIBLE_PLAYERS:
+            raise ValueError
+
+    def __repr__(self) -> str:
+        if self.i == -1:
+            return "tied"
+        return f"Player({self.i}, {self.agent})"
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, Player):
+            return self.i == other.i
+        if isinstance(other, int):
+            return self.i == other
+        return False
+
+    def __int__(self) -> int:
+        return self.i
 
 
 _Row = Tuple[int, int, int]
@@ -51,14 +112,12 @@ MaybeBoard = Optional[_Board]
 MaybePlayer = Optional[Player]
 
 
+@dataclass(frozen=True)
 class Board:
-    def __init__(self, state: MaybeBoard = None):
-        if state is None:
-            state = (
-                (0, 0, 0),
-                (0, 0, 0),
-                (0, 0, 0))
-        self.state = state
+    state: _Board = (
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0))
 
     def _rrow(self, i: int) -> str:
         row = self.state[i]
@@ -83,11 +142,19 @@ class Board:
             return False
 
 
-@dataclass
+@dataclass(frozen=True)
 class Game:
-    player: Player
-    winner: MaybePlayer
+    players: Tuple[Player, Player]
     board: Board
+    player_idx: int = 0
+
+    @property
+    def winner(self) -> MaybePlayer:
+        return determine_winner(self)
+
+    @property
+    def player(self) -> Player:
+        return self.players[self.player_idx]
 
 
 def _sum_board_rows(board: Board) -> Tuple[int, int]:
@@ -121,34 +188,41 @@ def _transpose_board(board: Board) -> Board:
     return Board((row0, row1, row2))
 
 
-def determine_winner(board: Board) -> MaybePlayer:
+def determine_winner(game: Game) -> MaybePlayer:
+    board = game.board
+    players = game.players
+
     # test row winner
     sum_row_1, sum_row_2 = _sum_board_rows(board)
     if sum_row_1 == 3:
-        return Player(1)
+        return players[0]
     if sum_row_2 == 3:
-        return Player(2)
+        return players[1]
 
     # test col winner
     sum_col_1, sum_col_2 = _sum_board_cols(board)
     if sum_col_1 == 3:
-        return Player(1)
+        return players[0]
     if sum_col_2 == 3:
-        return Player(2)
+        return players[1]
 
     # test diag winner
     sum_diag_1, sum_diag_2 = _sum_board_diag(board)
     if sum_diag_1 == 3:
-        return Player(1)
+        return players[0]
     if sum_diag_2 == 3:
-        return Player(2)
+        return players[1]
+
+    if not get_legal_moves(game):
+        # tied
+        return Player(-1)
 
     # no winner
     return None
 
 
-def get_next_player(game: Game) -> Player:
-    return (Player(1), Player(2))[game.player == Player(1)]
+def get_next_player_idx(game: Game) -> int:
+    return int(game.player == Player(1))
 
 
 def _get_legal_moves(game: Game) -> Generator[Move, None, None]:
@@ -162,8 +236,7 @@ def get_legal_moves(game: Game) -> List[Move]:
 
 
 def get_move(game: Game) -> Move:
-    legal_moves = get_legal_moves(game)
-    return random.choice(legal_moves)
+    return game.player.agent.next_move(game)
 
 
 def _make_row(row: _Row, player: Player, i: int) -> _Row:
@@ -192,56 +265,20 @@ def apply_move(
     return state_new
 
 
-def make_move(game: Game, move: Move) -> Game:
+def make_move(game: Game) -> Game:
     move = get_move(game)
     state_new = apply_move(board=game.board, move=move, player=game.player)
     board = Board(state=state_new)
-    player = get_next_player(game)
-    winner = determine_winner(board)
+    player_idx = get_next_player_idx(game)
     return Game(
-        player=player,
-        winner=winner,
+        players=game.players,
         board=board,
+        player_idx=player_idx,
     )
 
 
 def init_game() -> Game:
     return Game(
-        player=Player(1),
-        winner=None,
+        players=(Player(1), Player(2)),
         board=Board(),
     )
-
-
-if __name__ == '__main__':
-    game = init_game()
-    print(game)
-    print(_sum_board_rows(game.board))
-    print(_sum_board_cols(game.board))
-    print(_sum_board_diag(game.board))
-    print(determine_winner(game.board))
-
-    board2 = Board(((0, 1, 2), (0, 1, 0), (2, 1, 2)))
-    print(board2)
-    print(_sum_board_rows(board2))
-    print(_sum_board_cols(board2))
-    print(_sum_board_diag(board2))
-    print(determine_winner(board2))
-
-    board3 = _transpose_board(board2)
-    print(board3)
-    print(_sum_board_rows(board3))
-    print(_sum_board_cols(board3))
-    print(_sum_board_diag(board3))
-    print(determine_winner(board3))
-
-    board4 = Board(((1, 1, 2), (1, 2, 1), (2, 0, 2)))
-    print(board4)
-    print(_sum_board_rows(board4))
-    print(_sum_board_cols(board4))
-    print(_sum_board_diag(board4))
-    print(determine_winner(board4))
-
-    move = Move(1, 2)
-    ii, jj = move
-    import pdb; pdb.set_trace()
