@@ -1,4 +1,5 @@
 py.test && mypy --strict aidoodle/
 
-python aidoodle/run.py
-python aidoodle/ai/mcts.py
+play
+play --n_iter 5000 --start false
+play --agent random

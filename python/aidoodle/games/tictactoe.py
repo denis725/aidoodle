@@ -47,6 +47,9 @@ class Agent:
     def next_move(self, game: 'Game') -> Move:
         raise NotImplementedError
 
+    def __repr__(self) -> str:
+        return self.__class__.__name__
+
 
 class RandomAgent(Agent):
     def next_move(self, game: 'Game') -> Move:

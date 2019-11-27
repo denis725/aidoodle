@@ -156,24 +156,3 @@ class MctsAgent:
 
     def __repr__(self) -> str:
         return f"MctsAgent(n_iter={self.n_iter})"
-
-
-def main() -> None:
-    from aidoodle.games import tictactoe as engine
-    game: core.Game = engine.init_game()
-    while not game.winner:
-        root = Node(game=game)
-        for _ in range(1000):
-            search_iteration(node=root, engine=engine)
-        node_selected = choose_node(root)
-        game = node_selected.game
-        print(game.board)
-
-    if game.winner.i > 0:
-        print(f"Player {game.winner.i} won")
-    else:
-        print("Game tied")
-
-
-if __name__ == '__main__':
-    main()

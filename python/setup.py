@@ -34,4 +34,8 @@ setup(
         'testing': tests_require,
         'docs': docs_require,
     },
+    entry_points='''
+        [console_scripts]
+        play=aidoodle.run:run
+    ''',
 )
