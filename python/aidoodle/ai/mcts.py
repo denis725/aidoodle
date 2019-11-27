@@ -1,9 +1,8 @@
-from dataclasses import dataclass, replace, field
+from dataclasses import dataclass, field
 import enum
 import math
 import random
-from types import ModuleType
-from typing import Any, List, Tuple, Optional, Generator, Set, Union, Iterable, TypeVar
+from typing import Any, List, Optional, Union, Iterable, TypeVar
 
 from aidoodle import core
 
@@ -78,17 +77,17 @@ def choose_node(root: Node) -> Node:
     return _selectmax(root.children, (c.s for c in root.children))
 
 
-def expand(node: Node, engine: Any) -> Node:
+def expand(node: Node, engine: Any) -> None:
     moves: List[core.Move] = engine.get_legal_moves(node.game.board)
     games: List[core.Game] = [engine.make_move(game=node.game, move=move)
                                for move in moves]
     children = [Node(game=game, move=move) for game, move in zip(games, moves)]
     add_nodes(node, children=children)
-    return node
 
 
 def simulate(node: Node, engine: Any) -> float:
-    game = node.game
+    # init a game with random players
+    game = engine.init_game(board=node.game.board)
     while not game.winner:
         # by default uses random play
         game = engine.make_move(game)
@@ -128,8 +127,8 @@ def search_iteration(
         node = select(node.children, strategy=strategy)
 
     # expansion
-    node = expand(node, engine=engine)
-    if not node.children:
+    expand(node, engine=engine)
+    if not node.children:  # end state reached
         return
 
     # simulate
@@ -139,13 +138,14 @@ def search_iteration(
     update(node, value=value)
 
 
+@dataclass(frozen=True)
 class MctsAgent:
-    n_iter: int = 1000
     engine: Any
+    n_iter: int = 1000
 
     def next_move(self, game: core.Game) -> core.Move:
         root = Node(game=game)
-        for i in range(1000):
+        for _ in range(self.n_iter):
             search_iteration(node=root, engine=self.engine)
         node_selected = choose_node(root)
         move = node_selected.move
@@ -153,6 +153,9 @@ class MctsAgent:
         if move is None:
             raise TypeError
         return move
+
+    def __repr__(self) -> str:
+        return f"MctsAgent(n_iter={self.n_iter})"
 
 
 def main() -> None:
@@ -165,7 +168,11 @@ def main() -> None:
         node_selected = choose_node(root)
         game = node_selected.game
         print(game.board)
-    print(game.winner)
+
+    if game.winner.i > 0:
+        print(f"Player {game.winner.i} won")
+    else:
+        print("Game tied")
 
 
 if __name__ == '__main__':
