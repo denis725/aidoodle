@@ -92,13 +92,8 @@ def simulate(node: Node, engine: Any) -> float:
         # by default uses random play
         game = engine.make_move(game)
 
-    if game.winner == 1:
-        return 1.0
-    if game.winner == 2:
-        return 0.0
-    if game.winner == -1:  # tie
-        return 0.5
-    raise ValueError
+    score = engine.winner_to_score(game.winner)
+    return score
 
 
 def _update_one(node: Node, value: float) -> None:

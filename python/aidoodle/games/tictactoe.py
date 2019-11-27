@@ -285,6 +285,18 @@ def make_move(game: Game, move: Optional[Move] = None) -> Game:
     )
 
 
+def winner_to_score(winner: Player) -> float:
+    if winner == 1:
+        return 1.0
+    if winner == 2:
+        return 0.0
+    if winner == -1:  # tie
+        return 0.5
+
+    raise ValueError
+
+
+
 def init_game(board: MaybeBoard = None) -> Game:
     board_: Board = board if board is not None else Board()
     return Game(

@@ -36,6 +36,7 @@ setup(
     },
     entry_points='''
         [console_scripts]
-        play=aidoodle.run:run
+        ai-play=aidoodle.run:run
+        ai-simulate=aidoodle.run:simulate
     ''',
 )
