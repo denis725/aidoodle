@@ -87,19 +87,13 @@ class TestLegalMoves:
         return ttt.get_legal_moves
 
     def test_moves_board_empty(self, ttt, board_empty, get_legal_moves):
-        game = ttt.init_game()
-        game = dataclasses.replace(game, board=board_empty)
-        assert set(get_legal_moves(game)) == ttt.POSSIBLE_MOVES
+        assert set(get_legal_moves(board_empty)) == ttt.POSSIBLE_MOVES
 
     def test_moves_board_non_empty(self, ttt, board_non_empty, get_legal_moves):
-        game = ttt.init_game()
-        game = dataclasses.replace(game, board=board_non_empty)
-        assert get_legal_moves(game) == [(0, 0)]
+        assert get_legal_moves(board_non_empty) == [(0, 0)]
 
     def test_no_moves(self, ttt, board_row_win, get_legal_moves):
-        game = ttt.init_game()
-        game = dataclasses.replace(game, board=board_row_win)
-        assert get_legal_moves(game) == []
+        assert get_legal_moves(board_row_win) == []
 
 
 class TestApplyMove:
@@ -107,13 +101,13 @@ class TestApplyMove:
     def apply_move(self, ttt):
         return ttt.apply_move
 
-    def test_it(self, board_empty, ttt, apply_move):
+    def test_apply_move(self, board_empty, ttt, apply_move):
         board = board_empty
         state_new = apply_move(
             board=board,
             move=ttt.Move(0, 0),
             player=ttt.Player(1),
-        )
+        ).state
         assert state_new == ((1, 0, 0), (0, 0, 0), (0, 0, 0))
 
         board = ttt.Board(state_new)
@@ -121,7 +115,7 @@ class TestApplyMove:
             board=board,
             move=ttt.Move(1, 1),
             player=ttt.Player(2),
-        )
+        ).state
         assert state_new == ((1, 0, 0), (0, 2, 0), (0, 0, 0))
 
         board = ttt.Board(state_new)
@@ -129,7 +123,7 @@ class TestApplyMove:
             board=board,
             move=ttt.Move(0, 2),
             player=ttt.Player(1),
-        )
+        ).state
         assert state_new == ((1, 0, 1), (0, 2, 0), (0, 0, 0))
 
         board = ttt.Board(state_new)
@@ -137,7 +131,7 @@ class TestApplyMove:
             board=board,
             move=ttt.Move(0, 1),
             player=ttt.Player(2),
-        )
+        ).state
         assert state_new == ((1, 2, 1), (0, 2, 0), (0, 0, 0))
 
         board = ttt.Board(state_new)
@@ -145,7 +139,7 @@ class TestApplyMove:
             board=board,
             move=ttt.Move(2, 2),
             player=ttt.Player(1),
-        )
+        ).state
         assert state_new == ((1, 2, 1), (0, 2, 0), (0, 0, 1))
 
         board = ttt.Board(state_new)
@@ -153,5 +147,5 @@ class TestApplyMove:
             board=board,
             move=ttt.Move(2, 1),
             player=ttt.Player(2),
-        )
+        ).state
         assert state_new == ((1, 2, 1), (0, 2, 0), (0, 2, 1))

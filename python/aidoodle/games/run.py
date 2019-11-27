@@ -1,17 +1,17 @@
-from aidoodle.games import tictactoe as ttt
+from aidoodle.games import tictactoe as engine
 
 
 def play_game() -> None:
-    player1 = ttt.Player(1, agent=ttt.CliInputAgent())
-    #player1 = ttt.Player(1)
-    game = ttt.Game(
-        players=(player1, ttt.Player(2)),
-        board=ttt.Board(),
+    player1 = engine.Player(1, agent=engine.CliInputAgent())
+    #player1 = engine.Player(1)
+    game = engine.Game(
+        players=(player1, engine.Player(2)),
+        board=engine.Board(),
     )
 
     while not game.winner:
         print(game.board, flush=True)
-        game = ttt.make_move(game=game)
+        game = engine.make_move(game=game)
     print(game.board)
     print(f"Winner: {game.winner}")
 

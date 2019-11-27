@@ -3,7 +3,9 @@ from functools import total_ordering
 from itertools import product
 import random
 import sys
-from typing import Any, List, Tuple, Optional, Generator, Set, Union
+from typing import Any, List, Tuple, Optional, Generator, Set
+
+from aidoodle.games import core
 
 
 POSSIBLE_PLAYERS: Set[int] = {-1, 1, 2}  # -1 <- tied
@@ -12,7 +14,7 @@ POSSIBLE_MOVES: Set[Tuple[int, int]] = set(product(range(3), range(3)))
 
 @dataclass(frozen=True)
 @total_ordering
-class Move:
+class Move(core.Move):
     i: int
     j: int
 
@@ -43,21 +45,13 @@ class Move:
         return hash((self.i, self.j))
 
 
-class Agent:
+class RandomAgent(core.Agent):
     def next_move(self, game: 'Game') -> Move:
-        raise NotImplementedError
-
-    def __repr__(self) -> str:
-        return self.__class__.__name__
-
-
-class RandomAgent(Agent):
-    def next_move(self, game: 'Game') -> Move:
-        legal_moves = get_legal_moves(game)
+        legal_moves = get_legal_moves(game.board)
         return random.choice(legal_moves)
 
 
-class CliInputAgent(Agent):
+class CliInputAgent(core.Agent):
     def _ask_input(self) -> Move:
         inp = input("choose next move: ")
         if inp == 'q':
@@ -70,7 +64,7 @@ class CliInputAgent(Agent):
         return move
 
     def next_move(self, game: 'Game') -> Move:
-        moves = get_legal_moves(game)
+        moves = get_legal_moves(game.board)
         print("possible moves: ", sorted(moves), flush=True)
 
         move = self._ask_input()
@@ -82,9 +76,9 @@ class CliInputAgent(Agent):
 
 
 @dataclass(frozen=True)
-class Player:
+class Player(core.Player):
     i: int
-    agent: Agent = RandomAgent()
+    agent: core.Agent = RandomAgent()
 
     def __post_init__(self) -> None:
         if self.i not in POSSIBLE_PLAYERS:
@@ -105,16 +99,17 @@ class Player:
     def __int__(self) -> int:
         return self.i
 
+    def __hash__(self) -> int:
+        return hash(self.i)
 
-_Row = Tuple[int, int, int]
-_Board = Tuple[_Row, _Row, _Row]
-MaybeBoard = Optional[_Board]
+
 MaybePlayer = Optional[Player]
+_Row = Tuple[int, int, int]
 
 
 @dataclass(frozen=True)
-class Board:
-    state: _Board = (
+class Board(core.Board):
+    state: Tuple[_Row, _Row, _Row] = (
         (0, 0, 0),
         (0, 0, 0),
         (0, 0, 0))
@@ -141,9 +136,15 @@ class Board:
         except (TypeError, AttributeError):
             return False
 
+    def __hash__(self) -> int:
+        return hash(self.state)
+
+
+MaybeBoard = Optional[Board]
+
 
 @dataclass(frozen=True)
-class Game:
+class Game(core.Game):
     players: Tuple[Player, Player]
     board: Board
     player_idx: int = 0
@@ -213,8 +214,8 @@ def determine_winner(game: Game) -> MaybePlayer:
     if sum_diag_2 == 3:
         return players[1]
 
-    if not get_legal_moves(game):
-        # tied
+    if not get_legal_moves(game.board):
+        # codes for tied
         return Player(-1)
 
     # no winner
@@ -225,14 +226,14 @@ def get_next_player_idx(game: Game) -> int:
     return int(game.player == Player(1))
 
 
-def _get_legal_moves(game: Game) -> Generator[Move, None, None]:
+def _get_legal_moves(board: Board) -> Generator[Move, None, None]:
     for i, j in POSSIBLE_MOVES:
-        if game.board.state[i][j] == 0:
+        if board.state[i][j] == 0:
             yield Move(i, j)
 
 
-def get_legal_moves(game: Game) -> List[Move]:
-    return list(_get_legal_moves(game))
+def get_legal_moves(board: Board) -> List[Move]:
+    return list(_get_legal_moves(board))
 
 
 def get_move(game: Game) -> Move:
@@ -250,7 +251,7 @@ def apply_move(
         board: Board,
         move: Move,
         player: Player,
-) -> _Board:
+) -> Board:
     state = board.state
     i_row, i_col = move
 
@@ -262,13 +263,14 @@ def apply_move(
         _make_row(state[1], player, i_col) if i_row == 1 else state[1],
         _make_row(state[2], player, i_col) if i_row == 2 else state[2])
 
-    return state_new
+    return Board(state=state_new)
 
 
-def make_move(game: Game) -> Game:
-    move = get_move(game)
-    state_new = apply_move(board=game.board, move=move, player=game.player)
-    board = Board(state=state_new)
+def make_move(game: Game, move: Optional[Move] = None) -> Game:
+    if move is None:
+        move = get_move(game)
+
+    board = apply_move(board=game.board, move=move, player=game.player)
     player_idx = get_next_player_idx(game)
     return Game(
         players=game.players,
@@ -277,8 +279,9 @@ def make_move(game: Game) -> Game:
     )
 
 
-def init_game() -> Game:
+def init_game(board: MaybeBoard = None) -> Game:
+    board_: Board = board if board is not None else Board()
     return Game(
         players=(Player(1), Player(2)),
-        board=Board(),
+        board=board_,
     )
