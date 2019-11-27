@@ -5,8 +5,6 @@ import random
 import sys
 from typing import Any, List, Tuple, Optional, Generator, Set
 
-from aidoodle.games import core
-
 
 POSSIBLE_PLAYERS: Set[int] = {-1, 1, 2}  # -1 <- tied
 POSSIBLE_MOVES: Set[Tuple[int, int]] = set(product(range(3), range(3)))
@@ -14,7 +12,7 @@ POSSIBLE_MOVES: Set[Tuple[int, int]] = set(product(range(3), range(3)))
 
 @dataclass(frozen=True)
 @total_ordering
-class Move(core.Move):
+class Move:
     i: int
     j: int
 
@@ -45,13 +43,18 @@ class Move(core.Move):
         return hash((self.i, self.j))
 
 
-class RandomAgent(core.Agent):
+class Agent:
+    def next_move(self, game: 'Game') -> Move:
+        raise NotImplementedError
+
+
+class RandomAgent(Agent):
     def next_move(self, game: 'Game') -> Move:
         legal_moves = get_legal_moves(game.board)
         return random.choice(legal_moves)
 
 
-class CliInputAgent(core.Agent):
+class CliInputAgent(Agent):
     def _ask_input(self) -> Move:
         inp = input("choose next move: ")
         if inp == 'q':
@@ -76,9 +79,9 @@ class CliInputAgent(core.Agent):
 
 
 @dataclass(frozen=True)
-class Player(core.Player):
+class Player:
     i: int
-    agent: core.Agent = RandomAgent()
+    agent: Agent = RandomAgent()
 
     def __post_init__(self) -> None:
         if self.i not in POSSIBLE_PLAYERS:
@@ -108,7 +111,7 @@ _Row = Tuple[int, int, int]
 
 
 @dataclass(frozen=True)
-class Board(core.Board):
+class Board:
     state: Tuple[_Row, _Row, _Row] = (
         (0, 0, 0),
         (0, 0, 0),
@@ -144,7 +147,7 @@ MaybeBoard = Optional[Board]
 
 
 @dataclass(frozen=True)
-class Game(core.Game):
+class Game:
     players: Tuple[Player, Player]
     board: Board
     player_idx: int = 0
