@@ -13,6 +13,9 @@ py.test aidoodle && mypy --strict aidoodle
 
 ## Play against AI
 
+Note: When a possible move is, e.g., `Move(0, 1)`, you should enter
+`0,1` to make that move.
+
 ```
 ai-play
 ai-play --n_iter 5000 --start false
