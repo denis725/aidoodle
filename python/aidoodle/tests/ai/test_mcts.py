@@ -208,8 +208,123 @@ class TestAgentTicTacToe:
             game='tictactoe',
             agent1='mcts',
             agent2='mcts',
-            n_iter1=200,  # dumb
-            n_iter2=200,  # smarter
+            n_iter1=200,
+            n_iter2=200,
             n_runs=50,
         )
         assert n_ties > 20
+
+
+class TestAgentNim:
+    @pytest.fixture
+    def engine(self):
+        from aidoodle.games import nim
+        return nim
+
+    @pytest.fixture
+    def agent(self, engine):
+        from aidoodle.ai.mcts import MctsAgent
+        return MctsAgent(engine, n_iter=500)
+
+    def test_mcts_situation_1(self, engine, agent):
+        # agent should make the wining move of leaving exactly one stone
+        board = engine.Board(state=(0, 2, 0))
+        game = engine.init_game(board=board)
+        move = agent.next_move(game)
+        expected = engine.Move(1, 1)
+        assert move == expected
+
+    def test_mcts_situation_2(self, engine, agent):
+        # agent should make the wining move of leaving exactly one stone
+        board = engine.Board(state=(0, 7, 0))
+        game = engine.init_game(board=board)
+        move = agent.next_move(game)
+        expected = engine.Move(1, 6)
+        assert move == expected
+
+    def test_mcts_situation_3(self, engine, agent):
+        # agent should make the wining move of leaving exactly one stone
+        board = engine.Board(state=(0, 1, 9))
+        game = engine.init_game(board=board)
+        move = agent.next_move(game)
+        expected = engine.Move(2, 9)
+        assert move == expected
+
+    def test_mcts_situation_4(self, engine, agent):
+        # agent should force a winning position by removing the 3
+        # stones from heap 0, which leaves (0, 2, 2), which leads to a
+        # winning position
+        board = engine.Board(state=(3, 2, 2))
+        game = engine.init_game(board=board)
+        move = agent.next_move(game)
+        expected = engine.Move(0, 3)
+        assert move == expected
+
+    def test_mcts_situation_5(self, engine, agent):
+        # agent should force a winning position by removing 1 stone
+        # from heap 2, which leaves (1, 1, 1), which leads to a
+        # winning position
+        board = engine.Board(state=(1, 1, 2))
+        game = engine.init_game(board=board)
+        move = agent.next_move(game)
+        expected = engine.Move(2, 1)
+        assert move == expected
+
+    @pytest.mark.slow
+    @pytest.mark.parametrize('agent1, agent2', [
+        ('random', 'mcts'),
+        ('mcts', 'random'),
+    ])
+    def test_simulation_against_random(self, engine, agent1, agent2):
+        # mcts should mostly win against random
+        from aidoodle.run import simulate
+
+        _, n_wins1, n_wins2, _ = simulate.callback(
+            game='nim',
+            agent1=agent1,
+            agent2=agent2,
+            n_iter1=100,
+            n_iter2=100,
+            n_runs=50,
+        )
+        if agent1 == 'mcts':
+            assert n_wins1 > 25
+        else:
+            assert n_wins2 > 25
+
+    @pytest.mark.slow
+    @pytest.mark.parametrize('n_iter1, n_iter2', [
+        (10, 100),
+        (100, 10),
+    ])
+    def test_simulation_different_depths(self, engine, n_iter1, n_iter2):
+        # mcts 100 vs mcts 10 should mostly win
+        from aidoodle.run import simulate
+
+        _, n_wins1, n_wins2, _ = simulate.callback(
+            game='nim',
+            agent1='mcts',
+            agent2='mcts',
+            n_iter1=n_iter1,
+            n_iter2=n_iter2,
+            n_runs=50,
+        )
+        if n_iter1 > n_iter2:
+            assert n_wins1 > 25
+        else:
+            assert n_wins2 > 25
+
+    @pytest.mark.slow
+    def test_simulation_equal_depths(self, engine):
+        # mcts against itself should win and lose about equally
+        from aidoodle.run import simulate
+
+        _, n_wins1, n_wins2, _ = simulate.callback(
+            game='nim',
+            agent1='mcts',
+            agent2='mcts',
+            n_iter1=50,
+            n_iter2=50,
+            n_runs=50,
+        )
+        assert abs(n_wins1 - n_wins2) <= 15
