@@ -1,13 +1,20 @@
 # type: ignore
 
+from dataclasses import replace
+
 import click
 
+from aidoodle.games import nim
 from aidoodle.games import tictactoe
 from aidoodle.ai.mcts import MctsAgent
 
 
-AGENTS = ['random', 'mcts']
-GAMES = ['tictactoe']
+AGENTS = ['random', 'mcts', 'cli']
+ENGINES = {
+    'tictactoe': tictactoe,
+    'nim': nim,
+}
+GAMES = list(ENGINES)
 
 
 def play_game(*args, n_runs=None, **kwargs):
@@ -47,11 +54,8 @@ def _void(*args, **kwargs):
 
 def _play_game(player1, player2, engine, silent=False):
     sink = _void if silent else print
-
-    game = engine.Game(
-        players=(player1, player2),
-        board=engine.Board(),
-    )
+    game = engine.init_game()
+    game = replace(game, players=(player1, player2))
 
     while not game.winner:
         sink(game.board, flush=True)
