@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 import pytest
 
 
@@ -97,3 +99,97 @@ class TestAddNodes:
         assert root.s == 123
         assert child1.s == 234
         assert child2.s == 345
+
+
+class TestAgent:
+    @pytest.fixture
+    def engine(self):
+        from aidoodle.games import tictactoe as engine
+        return engine
+
+    @pytest.fixture
+    def agent(self, engine):
+        from aidoodle.ai.mcts import MctsAgent
+        return MctsAgent(engine, n_iter=100)
+
+    def test_mcts_situation_1(self, engine, agent):
+        board = engine.Board(state=(
+            (1, 1, 0),
+            (0, 0, 0),
+            (0, 2, 2)),
+        )
+        game = engine.init_game(board=board)
+        move = agent.next_move(game)
+        expected = engine.Move(0, 2)
+        assert move == expected
+
+    def test_mcts_situation_2(self, engine, agent):
+        board = engine.Board(state=(
+            (1, 1, 0),
+            (0, 1, 0),
+            (0, 2, 2)),
+        )
+        game = engine.init_game(board=board)
+        game = replace(game, player_idx=1)
+        move = agent.next_move(game)
+        expected = engine.Move(2, 0)
+        assert move == expected
+
+    @pytest.mark.parametrize('agent1, agent2', [
+        ('random', 'mcts'),
+        ('mcts', 'random'),
+    ])
+    def test_simulation_against_random(self, engine, agent1, agent2):
+        # mcts should mostly win against random
+        from aidoodle.run import simulate
+
+        _, n_wins1, n_wins2, _ = simulate.callback(
+            game='tictactoe',
+            agent1=agent1,
+            agent2=agent2,
+            n_iter1=100,
+            n_iter2=100,
+            n_runs=50,
+        )
+        if agent1 == 'mcts':
+            assert n_wins1 > 25
+        else:
+            assert n_wins2 > 25
+
+    @pytest.mark.parametrize('n_iter1, n_iter2', [
+        (10, 100),
+        (100, 10),
+    ])
+    def test_simulation_different_depths(self, engine, n_iter1, n_iter2):
+        # mcts 100 vs mcts 10 should mostly win
+        from aidoodle.run import simulate
+
+        _, n_wins1, n_wins2, _ = simulate.callback(
+            game='tictactoe',
+            agent1='mcts',
+            agent2='mcts',
+            n_iter1=n_iter1,
+            n_iter2=n_iter2,
+            n_runs=50,
+        )
+        if n_iter1 > n_iter2:
+            assert n_wins1 > 25
+        else:
+            assert n_wins2 > 25
+
+    def test_simulation_equal_depths(self, engine):
+        # mcts against itself should mostly tie
+
+        # note that n_iter must be sufficiently high, otherwise the
+        # starting player will mostly win
+        from aidoodle.run import simulate
+
+        _, _, _, n_ties = simulate.callback(
+            game='tictactoe',
+            agent1='mcts',
+            agent2='mcts',
+            n_iter1=200,  # dumb
+            n_iter2=200,  # smarter
+            n_runs=50,
+        )
+        assert n_ties > 20

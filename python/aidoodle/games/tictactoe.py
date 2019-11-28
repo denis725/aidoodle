@@ -53,7 +53,7 @@ class Agent:
 
 class RandomAgent(Agent):
     def next_move(self, game: 'Game') -> Move:
-        legal_moves = get_legal_moves(game.board)
+        legal_moves = get_legal_moves(game)
         return random.choice(legal_moves)
 
 
@@ -70,7 +70,7 @@ class CliInputAgent(Agent):
         return move
 
     def next_move(self, game: 'Game') -> Move:
-        moves = get_legal_moves(game.board)
+        moves = get_legal_moves(game)
         print("possible moves: ", sorted(moves), flush=True)
 
         move = self._ask_input()
@@ -220,7 +220,7 @@ def determine_winner(game: Game) -> MaybePlayer:
     if sum_diag_2 == 3:
         return players[1]
 
-    if not get_legal_moves(game.board):
+    if not get_possible_moves(game):
         # codes for tied
         return Player(-1)
 
@@ -232,14 +232,20 @@ def get_next_player_idx(game: Game) -> int:
     return int(game.player == Player(1))
 
 
-def _get_legal_moves(board: Board) -> Generator[Move, None, None]:
+def _get_all_moves(board: Board) -> Generator[Move, None, None]:
     for i, j in POSSIBLE_MOVES:
         if board.state[i][j] == 0:
             yield Move(i, j)
 
 
-def get_legal_moves(board: Board) -> List[Move]:
-    return list(_get_legal_moves(board))
+def get_possible_moves(game: Game) -> List[Move]:
+    return list(_get_all_moves(game.board))
+
+
+def get_legal_moves(game: Game) -> List[Move]:
+    if not game.winner:
+        return list(_get_all_moves(game.board))
+    return []
 
 
 def get_move(game: Game) -> Move:

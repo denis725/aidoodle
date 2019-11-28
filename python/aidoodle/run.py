@@ -12,8 +12,8 @@ GAMES = ['tictactoe']
 
 def play_game(*args, n_runs=None, **kwargs):
     n_games = 0
-    n_wins_1 = 0
-    n_wins_2 = 0
+    n_wins1 = 0
+    n_wins2 = 0
     n_ties = 0
 
     cont = 't'
@@ -24,19 +24,21 @@ def play_game(*args, n_runs=None, **kwargs):
         n_games += 1
 
         if winner == 1:
-            n_wins_1 += 1
+            n_wins1 += 1
         elif winner == 2:
-            n_wins_2 += 1
+            n_wins2 += 1
         elif winner == -1:
             n_ties += 1
         else:
             raise ValueError
 
-        print(f"games: {n_games} | wins 1: {n_wins_1} | wins 2: {n_wins_2} "
+        print(f"games: {n_games} | wins 1: {n_wins1} | wins 2: {n_wins2} "
               f"| ties: {n_ties}")
 
-        if n_games >= n_runs:
+        if n_runs and (n_games >= n_runs):
             break
+
+    return n_games, n_wins1, n_wins2, n_ties
 
 
 def _void(*args, **kwargs):
@@ -54,7 +56,8 @@ def _play_game(player1, player2, engine, silent=False):
     while not game.winner:
         sink(game.board, flush=True)
         game = engine.make_move(game=game)
-    print(game.board)
+
+    sink(game.board)
     sink(f"Winner: {game.winner}")
     return game.winner
 
@@ -115,4 +118,6 @@ def simulate(game, agent1, agent2, n_iter1, n_iter2, n_runs):
     else:
         raise ValueError
 
-    play_game(player1, player2, engine=engine, n_runs=n_runs, silent=False)
+    n_games, n_wins1, n_wins2, n_ties = play_game(
+        player1, player2, engine=engine, n_runs=n_runs, silent=True)
+    return n_games, n_wins1, n_wins2, n_ties
