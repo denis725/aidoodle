@@ -69,13 +69,10 @@ def _play_game(player1, player2, engine, silent=False):
 @click.command()
 @click.option('--start', default=True, type=click.BOOL, help="whether you start")
 @click.option('--agent', default='mcts', type=click.Choice(AGENTS), help='which agent')
-@click.option('--game', default='tictactoe', type=click.Choice(GAMES), help='which game')
+@click.option('--game', default='tictactoe', type=click.Choice(list(GAMES)), help='which game')
 @click.option('--n_iter', default=1000, type=click.INT, help='agent depth')
 def run(start, agent, game, n_iter):
-    if game == 'tictactoe':
-        engine = tictactoe
-    else:
-        raise ValueError
+    engine = ENGINES[game]
 
     player_idx, agent_idx = (1, 2) if start else (2, 1)
     player = engine.Player(player_idx, agent=engine.CliInputAgent())
@@ -88,7 +85,7 @@ def run(start, agent, game, n_iter):
     else:
         raise ValueError
 
-    print(f"Playing against {player_agent.agent}")
+    print(f"Playing {game} against {player_agent.agent}")
     if start:
         play_game(player, player_agent, engine=engine)
     else:
@@ -104,10 +101,7 @@ def run(start, agent, game, n_iter):
 @click.option('--n_runs', default=100, type=click.INT, help='number of simulations')
 @click.option('--silent', default=True, type=click.BOOL, help='show intermediate results')
 def simulate(game, agent1, agent2, n_iter1, n_iter2, n_runs, silent=True):
-    if game == 'tictactoe':
-        engine = tictactoe
-    else:
-        raise ValueError
+    engine = ENGINES[game]
 
     if agent1 == 'random':
         player1 = engine.Player(1)

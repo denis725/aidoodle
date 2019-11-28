@@ -104,7 +104,7 @@ class TestAddNodes:
         assert child2.s == 345
 
 
-class TestAgent:
+class TestAgentTicTacToe:
     @pytest.fixture
     def engine(self):
         from aidoodle.games import tictactoe as engine

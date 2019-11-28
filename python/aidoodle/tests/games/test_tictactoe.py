@@ -90,18 +90,15 @@ class TestLegalMoves:
         return ttt.get_legal_moves
 
     def test_moves_board_empty(self, ttt, board_empty, get_legal_moves):
-        game = ttt.init_game()
-        game = dataclasses.replace(game, board=board_empty)
+        game = ttt.init_game(board=board_empty)
         assert set(get_legal_moves(game)) == ttt.POSSIBLE_MOVES
 
     def test_moves_board_non_empty(self, ttt, board_non_empty, get_legal_moves):
-        game = ttt.init_game()
-        game = dataclasses.replace(game, board=board_non_empty)
+        game = ttt.init_game(board=board_non_empty)
         assert get_legal_moves(game) == [(0, 0)]
 
     def test_no_moves(self, ttt, board_row_win, get_legal_moves):
-        game = ttt.init_game()
-        game = dataclasses.replace(game, board=board_row_win)
+        game = ttt.init_game(board=board_row_win)
         assert get_legal_moves(game) == []
 
 
