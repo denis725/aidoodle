@@ -303,9 +303,10 @@ def winner_to_score(winner: Player) -> float:
 
 
 
-def init_game(board: MaybeBoard = None) -> Game:
+def init_game(board: MaybeBoard = None, player_idx: int = 0) -> Game:
     board_: Board = board if board is not None else Board()
     return Game(
         players=(Player(1), Player(2)),
         board=board_,
+        player_idx=player_idx,
     )

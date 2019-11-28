@@ -93,7 +93,10 @@ def expand(node: Node, engine: Any) -> None:
 
 def simulate(node: Node, engine: Any) -> float:
     # init a game with random players
-    game = engine.init_game(board=node.game.board)
+    game = engine.init_game(
+        board=node.game.board,
+        player_idx=node.game.player_idx,
+    )
 
     if VERBOSE:
         print("-" * 40)
@@ -107,7 +110,6 @@ def simulate(node: Node, engine: Any) -> float:
         print(game.winner)
 
     score: float = engine.winner_to_score(game.winner)
-    # import pdb; pdb.set_trace()
     return score
 
 
