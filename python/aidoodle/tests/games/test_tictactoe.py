@@ -1,3 +1,6 @@
+# type: ignore
+
+
 import dataclasses
 
 import pytest

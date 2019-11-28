@@ -80,6 +80,9 @@ class CliInputAgent(Agent):
         print(f"performing move {move}", flush=True)
         return move
 
+    def __repr__(self) -> str:
+        return "You"
+
 
 @dataclass(frozen=True)
 class Player:
