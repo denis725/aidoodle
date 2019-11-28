@@ -110,9 +110,10 @@ class TestAgent:
     @pytest.fixture
     def agent(self, engine):
         from aidoodle.ai.mcts import MctsAgent
-        return MctsAgent(engine, n_iter=100)
+        return MctsAgent(engine, n_iter=500)
 
     def test_mcts_situation_1(self, engine, agent):
+        # player 1 should make the wining move
         board = engine.Board(state=(
             (1, 1, 0),
             (0, 0, 0),
@@ -124,16 +125,29 @@ class TestAgent:
         assert move == expected
 
     def test_mcts_situation_2(self, engine, agent):
+        # player 2 should make the winning move
         board = engine.Board(state=(
             (1, 1, 0),
             (0, 1, 0),
             (0, 2, 2)),
         )
-        game = engine.init_game(board=board)
-        game = replace(game, player_idx=1)
+        game = engine.init_game(board=board, player_idx=1)
         move = agent.next_move(game)
         expected = engine.Move(2, 0)
         assert move == expected
+
+    def test_mcts_situation_3(self, engine, agent):
+        # player 2 shouldn't move 0,2 or 2,0 since this will lead to a
+        # winning move for player 1 by placing on the opposite side
+        board = engine.Board(state=(
+            (1, 0, 0),
+            (0, 2, 0),
+            (0, 0, 1)),
+        )
+        game = engine.init_game(board=board, player_idx=1)
+        move = agent.next_move(game)
+        assert move != engine.Move(0, 2)
+        assert move != engine.Move(2, 0)
 
     @pytest.mark.parametrize('agent1, agent2', [
         ('random', 'mcts'),
