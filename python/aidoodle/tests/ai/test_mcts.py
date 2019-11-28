@@ -149,6 +149,7 @@ class TestAgent:
         assert move != engine.Move(0, 2)
         assert move != engine.Move(2, 0)
 
+    @pytest.mark.slow
     @pytest.mark.parametrize('agent1, agent2', [
         ('random', 'mcts'),
         ('mcts', 'random'),
@@ -170,6 +171,7 @@ class TestAgent:
         else:
             assert n_wins2 > 25
 
+    @pytest.mark.slow
     @pytest.mark.parametrize('n_iter1, n_iter2', [
         (10, 100),
         (100, 10),
@@ -191,6 +193,7 @@ class TestAgent:
         else:
             assert n_wins2 > 25
 
+    @pytest.mark.slow
     def test_simulation_equal_depths(self, engine):
         # mcts against itself should mostly tie
 
