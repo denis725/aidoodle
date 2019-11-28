@@ -20,6 +20,8 @@ Note: When a possible move is, e.g., `Move(0, 1)`, you should enter
 ai-play
 ai-play --n_iter 5000 --start false
 ai-play --agent random
+
+ai-play --n_iter 3000 --game nim
 ```
 
 ## Simulate AI
