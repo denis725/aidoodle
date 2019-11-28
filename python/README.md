@@ -28,3 +28,15 @@ ai-play --agent random
 ai-simulate
 ai-simulate --n_iter1 500 --agent2 random --n_runs 10 --silent false
 ```
+
+## Games
+
+### Tic Tac Toe
+
+First player to set 3 stones in a row or in a diagonale wins.
+
+### Nim
+
+There are 3 heaps with a random amount of stones on each heap. Players
+take turns removing an arbitrary amount of stones (> 0) from one
+heap. The last player to take a stone loses.
