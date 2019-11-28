@@ -98,7 +98,8 @@ def run(start, agent, game, n_iter):
 @click.option('--n_iter1', default=1000, type=click.INT, help='agent 1 depth')
 @click.option('--n_iter2', default=1000, type=click.INT, help='agent 2 depth')
 @click.option('--n_runs', default=100, type=click.INT, help='number of simulations')
-def simulate(game, agent1, agent2, n_iter1, n_iter2, n_runs):
+@click.option('--silent', default=True, type=click.BOOL, help='show intermediate results')
+def simulate(game, agent1, agent2, n_iter1, n_iter2, n_runs, silent=True):
     if game == 'tictactoe':
         engine = tictactoe
     else:
@@ -119,5 +120,5 @@ def simulate(game, agent1, agent2, n_iter1, n_iter2, n_runs):
         raise ValueError
 
     n_games, n_wins1, n_wins2, n_ties = play_game(
-        player1, player2, engine=engine, n_runs=n_runs, silent=True)
+        player1, player2, engine=engine, n_runs=n_runs, silent=silent)
     return n_games, n_wins1, n_wins2, n_ties
