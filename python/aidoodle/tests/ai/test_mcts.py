@@ -12,16 +12,10 @@ def node_cls():
     return Node
 
 
-@pytest.fixture
-def add_node():
-    from aidoodle.ai.mcts import add_node
-    return add_node
-
-
-@pytest.fixture
-def add_nodes():
-    from aidoodle.ai.mcts import add_nodes
-    return add_nodes
+@pytest.fixture(scope='session')
+def edge_cls():
+    from aidoodle.ai.mcts import Edge
+    return Edge
 
 
 @pytest.fixture
@@ -31,21 +25,27 @@ def game():
 
 
 @pytest.fixture
-def root3(node_cls, add_nodes, game):
+def move():
+    from aidoodle.games.tictactoe import Move
+    return Move(0, 0)
+
+
+@pytest.fixture
+def root2(node_cls, edge_cls, game):
     root = node_cls(game=game)
-    child0 = node_cls(game=game, w=1, s=2)
-    child1 = node_cls(game=game, w=5, s=9)
-    add_nodes(root, (child0, child1))
+    edge0 = edge_cls(move=move, w=1, s=2)
+    edge1 = edge_cls(move=move, w=5, s=9)
+    root.edges = [edge0, edge1]
     return root
 
 
 @pytest.fixture
-def root4(node_cls, add_nodes, game):
+def root3(node_cls, edge_cls, game):
     root = node_cls(game=game)
-    child0 = node_cls(game=game, w=1, s=2)
-    child1 = node_cls(game=game, w=5, s=9)
-    child2 = node_cls(game=game, w=0, s=0)
-    add_nodes(root, (child0, child1, child2))
+    edge0 = edge_cls(move=move, w=1, s=2)
+    edge1 = edge_cls(move=move, w=5, s=9)
+    edge2 = edge_cls(move=move, w=0, s=0)
+    root.edges = [edge0, edge1, edge2]
     return root
 
 
@@ -56,52 +56,16 @@ def select_ucb1():
 
 
 class TestSelection:
-    def test_select_ucb1_nodes3(self, root3, select_ucb1):
-        selected = select_ucb1(root3.children)
-        expected = root3.children[0]
+    def test_select_ucb1_nodes3(self, root2, select_ucb1):
+        selected = select_ucb1(root2.edges)
+        expected = root2.edges[0]
         assert selected == expected
 
-    def test_select_ucb1_nodes4(self, root4, select_ucb1):
-        selected = select_ucb1(root4.children)
+    def test_select_ucb1_nodes4(self, root3, select_ucb1):
+        selected = select_ucb1(root3.edges)
         # last one has never been selected, hence highest priority
-        expected = root4.children[2]
+        expected = root3.edges[2]
         assert selected == expected
-
-
-class TestAddNodes:
-    @pytest.fixture
-    def root(self, game):
-        from aidoodle.ai.mcts import Node
-        return Node(game=game, s=123)
-
-    @pytest.fixture
-    def child1(self, game):
-        from aidoodle.ai.mcts import Node
-        return Node(game=game, s=234)
-
-    @pytest.fixture
-    def child2(self, game):
-        from aidoodle.ai.mcts import Node
-        return Node(game=game, s=345)
-
-    def test_add_node(self, root, child1, add_node):
-        add_node(root, child1)
-        assert child1 in root.children
-        assert root.s == 123
-        assert child1.s == 234
-
-    def test_add_nodes(self, root, child1, child2, add_nodes):
-        add_nodes(root, (child1, child2))
-        for child in (child1, child2):
-            assert child in root.children
-
-    def test_add_node_keeps_parent(self, root, child1, child2, add_node):
-        add_node(root, child1)
-        add_node(child1, child2)
-
-        assert root.s == 123
-        assert child1.s == 234
-        assert child2.s == 345
 
 
 class TestAgentTicTacToe:
@@ -113,7 +77,7 @@ class TestAgentTicTacToe:
     @pytest.fixture
     def agent(self, engine):
         from aidoodle.ai.mcts import MctsAgent
-        return MctsAgent(engine, n_iter=500)
+        return MctsAgent(engine, n_iter=1000)
 
     def test_mcts_situation_1(self, engine, agent):
         # player 1 should make the wining move
@@ -208,8 +172,8 @@ class TestAgentTicTacToe:
             game='tictactoe',
             agent1='mcts',
             agent2='mcts',
-            n_iter1=200,
-            n_iter2=200,
+            n_iter1=500,
+            n_iter2=500,
             n_runs=50,
         )
         assert n_ties > 20
@@ -251,13 +215,13 @@ class TestAgentNim:
         assert move == expected
 
     def test_mcts_situation_4(self, engine, agent):
-        # agent should force a winning position by removing the 3
-        # stones from heap 0, which leaves (0, 2, 2), which leads to a
+        # agent should force a winning position by removing 3 stones
+        # from heap 2, which leaves (1, 1, 1), which leads to a
         # winning position
-        board = engine.Board(state=(3, 2, 2))
+        board = engine.Board(state=(1, 1, 4))
         game = engine.init_game(board=board)
         move = agent.next_move(game)
-        expected = engine.Move(0, 3)
+        expected = engine.Move(2, 3)
         assert move == expected
 
     def test_mcts_situation_5(self, engine, agent):

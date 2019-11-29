@@ -8,6 +8,7 @@ from aidoodle import core
 
 
 C = math.sqrt(2)  # from literature
+C = 10
 EPS = 1e-12  # for numerical stability
 VERBOSE = 0
 
@@ -16,24 +17,34 @@ T = TypeVar('T')
 
 
 MaybeNode = Optional['Node']
-MaybeMove = Optional[core.Move]
+MaybeEdge = Optional['Edge']
+# MaybeMove = Optional[core.Move]
+
+
+@dataclass
+class Edge:
+    move: core.Move
+    w: float = 0.0
+    s: int = 0
+    parent: MaybeNode = None
+
+    def __repr__(self) -> str:
+        return f"Edge({self.move}, w={self.w}, s={self.s})"
 
 
 @dataclass
 class Node:
     game: core.Game
-    w: float = 0.0  # number of winning sims
-    s: int = 0  # total number of sims
-    children: List['Node'] = field(default_factory=list)
-    parent: MaybeNode = None
-    move: MaybeMove = None
+    edges: List[Edge] = field(default_factory=list)
+    chosen: MaybeEdge = None
 
     def __repr__(self) -> str:
         g = str(hash(self.game) % 1000) + '..'
-        return f"Node(w={self.w}, s={self.s}, n_children={len(self.children)}, game={g})"
+        return f"Node(n_children={len(self.edges)}, game={g})"
 
 
 _Nodes = List[Node]
+_Edges = List[Edge]
 
 
 class Strategy(enum.Enum):
@@ -41,66 +52,56 @@ class Strategy(enum.Enum):
     ucb1 = 1
 
 
-def add_node(parent: Node, child: Node) -> None:
-    if child in parent.children:
-        raise ValueError
-
-    parent.children = parent.children.copy() + [child]
-    child.parent = parent
-
-
-def add_nodes(parent: Node, children: Iterable[Node]) -> None:
-    for child in children:
-        add_node(parent=parent, child=child)
-
-
 def _selectmax(keys: Iterable[T], vals: Iterable[Numeric]) -> T:
     return max(zip(keys, vals), key=lambda tup: tup[1])[0]
 
 
-def select_ucb1(nodes: _Nodes, c: float = C) -> Node:
-    s_tot = sum(node.s for node in nodes)
+def _ucb1_values(edges: _Edges, c: float = C) -> List[float]:
+    s_tot = sum(edge.s for edge in edges)
     const = c * math.log(s_tot + 1)
-    vals = [node.w / (node.s + EPS) + const / math.sqrt(node.s + EPS) for node in nodes]
-    node = _selectmax(nodes, vals)
-    return node
+    vals = [e.w / (e.s + EPS) + const / math.sqrt(e.s + EPS) for e in edges]
+    return vals
 
 
-def select(nodes: _Nodes, strategy: Strategy = Strategy.ucb1) -> Node:
+def select_ucb1(edges: _Edges, c: float = C) -> Edge:
+    vals = _ucb1_values(edges=edges, c=c)
+    edge = _selectmax(edges, vals)
+    return edge
+
+
+def select(edges: _Edges, strategy: Strategy = Strategy.ucb1) -> Edge:
     if strategy == Strategy.random:
-        return random.choice(nodes)
+        return random.choice(edges)
     if strategy == Strategy.ucb1:
-        return select_ucb1(nodes)
+        return select_ucb1(edges)
     raise TypeError
 
 
-def choose_node(root: Node) -> Node:
-    node = _selectmax(root.children, (c.s for c in root.children))
+def choose_edge(edges: _Edges) -> Edge:
+    edge = _selectmax(edges, (e.s for e in edges))
     if VERBOSE:
-        print(f"Number of visits: {node.s}, wins: {100*node.w/node.s:.1f}%")
-    return node
+        print(f"Number of visits: {edge.s}, wins: {100*edge.w/edge.s:.1f}%")
+    return edge
 
 
 def expand(node: Node, engine: Any) -> None:
     moves: List[core.Move] = engine.get_legal_moves(node.game)
-    games: List[core.Game] = [engine.make_move(game=node.game, move=move)
-                               for move in moves]
-    children = [Node(game=game, move=move) for game, move in zip(games, moves)]
-    for child in children:
-        assert child.game.player != node.game.player
-    add_nodes(node, children=children)
+    edges = [Edge(move) for move in moves]
+    assert not node.edges
+    node.edges = edges
 
 
-def simulate(node: Node, engine: Any) -> float:
+def simulate(game: core.Game, engine: Any) -> float:
     # init a game with random players
     game = engine.init_game(
-        board=node.game.board,
-        player_idx=node.game.player_idx,
+        board=game.board,
+        player_idx=game.player_idx,
     )
 
     if VERBOSE:
         print("-" * 40)
         print(game.board)
+
     while not game.winner:
         # by default uses random play
         game = engine.make_move(game)
@@ -113,19 +114,29 @@ def simulate(node: Node, engine: Any) -> float:
     return score
 
 
-def _update_node(node: Node, value: float) -> None:
-    node.s += 1
-    node.w += value
+def _update_edge(edge: Edge, value: float) -> None:
+    edge.s += 1
+    edge.w += value
 
 
-def update(node: Node, value: float) -> None:
-    if node.game.player != 1:
-        _update_node(node, value=value)
+
+COUNTER = 0
+def update(path: _Edges, players: List[Any], value: float) -> None:
+    if not path:
+        return
+
+    global COUNTER
+    COUNTER += 1
+
+    *path, edge = path
+    *players, player = players
+
+    if player == 1:
+        _update_edge(edge, value=value)
     else:
-        _update_node(node, value=1 - value)
+        _update_edge(edge, value=1 - value)
 
-    if node.parent is not None:
-        update(node.parent, value=value)
+    update(path, players=players, value=value)
 
 
 def search_iteration(
@@ -133,28 +144,31 @@ def search_iteration(
         engine: Any,  # should be ModuleType but that causes issues with mypy
         strategy: Strategy = Strategy.ucb1,
 ) -> None:
+    players: List[engine.Player] = []
+
     # selection
-    while node.children:
-        node = select(node.children, strategy=strategy)
+    while node.edges:
+        edge = select(node.edges, strategy=strategy)
+        players.append(node.game.player)
+        node = Node(game=engine.make_move(game=node.game, move=edge.move))
 
     # expansion
     expand(node, engine=engine)
 
-    if not node.children:  # end state reached
-        # simulate == just determine the value from end state
-        value = simulate(node, engine=engine)
-        # update
-        update(node, value=value)
-        return
-
-    # not end state -> choose ranodm child node
-    child = random.choice(node.children)
+    if node.edges:  # end game not reached
+        # not end state -> choose random move
+        edge = random.choice(node.edges)
+        node.chosen = edge
+        edge.parent = node
+        game = engine.make_move(game=node.game, move=edge.move)
+    else:  # end state reached
+        game = node.game
 
     # simulate
-    value = simulate(child, engine=engine)
+    value = simulate(game, engine=engine)
 
     # update
-    update(child, value=value)
+    update(path, players=players, value=value)
 
 
 @dataclass(frozen=True)
@@ -166,12 +180,11 @@ class MctsAgent:
         root = Node(game=game)
         for _ in range(self.n_iter):
             search_iteration(node=root, engine=self.engine)
-        node_selected = choose_node(root)
-        move = node_selected.move
 
-        if move is None:
-            raise TypeError
-        return move
+        edge = choose_edge(root.edges)
+
+        print("*" * 25, COUNTER, "*" * 25)
+        return edge.move
 
     def __repr__(self) -> str:
         return f"MctsAgent(n_iter={self.n_iter})"

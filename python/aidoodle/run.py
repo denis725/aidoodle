@@ -28,6 +28,7 @@ def play_game(*args, n_runs=None, **kwargs):
         winner = _play_game(*args, **kwargs)
         if n_runs is None:
             cont = input("(q) to quit playing: ")
+
         n_games += 1
 
         if winner == 1:

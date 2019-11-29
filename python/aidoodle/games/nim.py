@@ -201,7 +201,7 @@ def get_legal_moves(game: Game) -> List[Move]:
 def apply_move(
         board: Board,
         move: Move,
-        player: Player,
+        player: Player = Player(1),  # for compatibility
 ) -> Board:
     state = board.state
     i_heap, n_stones = move
