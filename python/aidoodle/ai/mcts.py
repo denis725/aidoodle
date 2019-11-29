@@ -16,17 +16,11 @@ Numeric = Union[float, int]
 T = TypeVar('T')
 
 
-MaybeNode = Optional['Node']
-MaybeEdge = Optional['Edge']
-# MaybeMove = Optional[core.Move]
-
-
 @dataclass
 class Edge:
     move: core.Move
     w: float = 0.0
     s: int = 0
-    parent: MaybeNode = None
 
     def __repr__(self) -> str:
         return f"Edge({self.move}, w={self.w}, s={self.s})"
@@ -36,15 +30,15 @@ class Edge:
 class Node:
     game: core.Game
     edges: List[Edge] = field(default_factory=list)
-    chosen: MaybeEdge = None
 
     def __repr__(self) -> str:
         g = str(hash(self.game) % 1000) + '..'
         return f"Node(n_children={len(self.edges)}, game={g})"
 
 
-_Nodes = List[Node]
 _Edges = List[Edge]
+_Nodes = List[Node]
+MaybeNode = Optional[Node]
 
 
 class Strategy(enum.Enum):
@@ -121,14 +115,14 @@ def _update_edge(edge: Edge, value: float) -> None:
 
 
 COUNTER = 0
-def update(path: _Edges, players: List[Any], value: float) -> None:
-    if not path:
+def update(edges: _Edges, players: List[Any], value: float, i=0) -> None:
+    if not edges:
         return
 
     global COUNTER
     COUNTER += 1
 
-    *path, edge = path
+    *edges, edge = edges
     *players, player = players
 
     if player == 1:
@@ -136,7 +130,7 @@ def update(path: _Edges, players: List[Any], value: float) -> None:
     else:
         _update_edge(edge, value=1 - value)
 
-    update(path, players=players, value=value)
+    update(edges, players=players, value=value, i=i+1)
 
 
 def search_iteration(
@@ -145,10 +139,12 @@ def search_iteration(
         strategy: Strategy = Strategy.ucb1,
 ) -> None:
     players: List[engine.Player] = []
+    edges: List[Edge] = []
 
     # selection
     while node.edges:
         edge = select(node.edges, strategy=strategy)
+        edges.append(edge)
         players.append(node.game.player)
         node = Node(game=engine.make_move(game=node.game, move=edge.move))
 
@@ -158,9 +154,9 @@ def search_iteration(
     if node.edges:  # end game not reached
         # not end state -> choose random move
         edge = random.choice(node.edges)
-        node.chosen = edge
-        edge.parent = node
         game = engine.make_move(game=node.game, move=edge.move)
+        edges.append(edge)
+        players.append(game.player)
     else:  # end state reached
         game = node.game
 
@@ -168,7 +164,8 @@ def search_iteration(
     value = simulate(game, engine=engine)
 
     # update
-    update(path, players=players, value=value)
+    assert len(edges) == len(players)
+    update(edges, players=players, value=value)
 
 
 @dataclass(frozen=True)
