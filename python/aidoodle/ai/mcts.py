@@ -21,6 +21,8 @@ class Edge:
     move: core.Move
     w: float = 0.0
     s: int = 0
+    prev_node: Optional['Node'] = None
+    next_node: Optional['Node'] = None
 
     def __repr__(self) -> str:
         return f"Edge({self.move}, w={self.w}, s={self.s})"
@@ -30,6 +32,8 @@ class Edge:
 class Node:
     game: core.Game
     edges: List[Edge] = field(default_factory=list)
+    prev_edge: Optional[Edge] = None
+    next_edge: Optional[Edge] = None
 
     def __repr__(self) -> str:
         g = str(hash(self.game) % 1000) + '..'
@@ -115,22 +119,23 @@ def _update_edge(edge: Edge, value: float) -> None:
 
 
 COUNTER = 0
-def update(edges: _Edges, players: List[Any], value: float, i=0) -> None:
-    if not edges:
-        return
-
+def update(edge: Edge, value: float, i=0) -> None:
     global COUNTER
     COUNTER += 1
+    if i > 2:
+        import pdb; pdb.set_trace()
 
-    *edges, edge = edges
-    *players, player = players
+    if not (edge and edge.prev_node):
+        return
 
-    if player == 1:
+    node = edge.prev_node
+
+    if node.game.player == 1:
         _update_edge(edge, value=value)
     else:
         _update_edge(edge, value=1 - value)
 
-    update(edges, players=players, value=value, i=i+1)
+    update(node.prev_edge, value=value, i=i+1)
 
 
 def search_iteration(
@@ -138,15 +143,15 @@ def search_iteration(
         engine: Any,  # should be ModuleType but that causes issues with mypy
         strategy: Strategy = Strategy.ucb1,
 ) -> None:
-    players: List[engine.Player] = []
-    edges: List[Edge] = []
-
     # selection
     while node.edges:
         edge = select(node.edges, strategy=strategy)
-        edges.append(edge)
-        players.append(node.game.player)
+        node.next_edge = edge
+        edge.prev_node = node
+
         node = Node(game=engine.make_move(game=node.game, move=edge.move))
+        node.prev_edge = edge
+        edge.next_node = node
 
     # expansion
     expand(node, engine=engine)
@@ -154,9 +159,12 @@ def search_iteration(
     if node.edges:  # end game not reached
         # not end state -> choose random move
         edge = random.choice(node.edges)
+        node.next_edge = edge
+        edge.prev_node = node
+
         game = engine.make_move(game=node.game, move=edge.move)
-        edges.append(edge)
-        players.append(game.player)
+        node = Node(game=game, prev_edge=edge)
+        edge.next_node = node
     else:  # end state reached
         game = node.game
 
@@ -164,8 +172,7 @@ def search_iteration(
     value = simulate(game, engine=engine)
 
     # update
-    assert len(edges) == len(players)
-    update(edges, players=players, value=value)
+    update(edge, value=value)
 
 
 @dataclass(frozen=True)
