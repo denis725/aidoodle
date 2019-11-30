@@ -123,7 +123,7 @@ class Board:
 
     def __repr__(self) -> str:
         header = "|" + "|".join(map(str, range(len(self)))) + "|\n"
-        header += "|" + "|".join('-' for _ in range(len(self))) + "|\n"
+        header += "|" + "+".join('-' for _ in range(len(self))) + "|\n"
         return header + "|" + "|".join(map(str, self.state)) + "|\n"
 
     def __eq__(self, other: Any) -> bool:

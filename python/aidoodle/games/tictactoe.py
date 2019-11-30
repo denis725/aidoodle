@@ -125,14 +125,17 @@ class Board:
 
     def _rrow(self, i: int) -> str:
         row = self.state[i]
-        return "|{}|{}|{}|".format(*row)
+        srow = "|{}|{}|{}|".format(*row)
+        srow = srow.replace("0", " ").replace("1", "x").replace("2", "o")
+        return srow
 
     def __repr__(self) -> str:
         return "\n".join((
             "",
-            self._rrow(0),
-            self._rrow(1),
-            self._rrow(2),
+            "   0 1 2",
+            "0 " + self._rrow(0),
+            "1 " + self._rrow(1),
+            "2 " + self._rrow(2),
         ))
 
     def __iter__(self) -> Generator[_Row, None, None]:
