@@ -37,6 +37,18 @@ ai-simulate --n_iter1 500 --agent2 random --n_runs 10 --silent false
 
 First player to set 3 stones in a row or in a diagonale wins.
 
+E.g., with this board:
+
+```
+   0 1 2
+0 |o|o|x|
+1 |x|o| |
+2 | | |x|
+```
+
+player 1 ("x") should play `1,2`, because that secures 3 stones in the
+right-most column.
+
 ### Nim
 
 There are 3 heaps with a random amount of stones on each heap. Players
@@ -53,3 +65,25 @@ opponent must take the last stone from heap 1 and loses.
 |-|-|-|
 |3|1|0|
 ```
+
+### Dumb dice
+
+Each player takes turn rolling two dice. After each roll, the player
+can decide whether to keep the roll ("continue", `c`) or to reroll
+(`r`). A player may only reroll exactly once. The eyes of the dice are
+then added to a player's score. The first player to have a score of at
+least 50 wins.
+
+E.g., for this board:
+
+```
+------------------------
+dice: 6 + 5 | target: 50
+   player 1 | player 2
+         40 | 47      
+```
+
+player 1 should continue (`c`) because that will result in a score of
+51, which leads to a win. If player 1 rerolled, there is a good chance
+that a non-winning sum of eyes will be rolled, in which case player 2
+will most likely win, needing only a sum of 3.
