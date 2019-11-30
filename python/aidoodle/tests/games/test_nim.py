@@ -101,7 +101,9 @@ class TestApplyMoves:
         (2, 3, (3, 4, 2)),
     ])
     @pytest.mark.parametrize('player', [1, 2])
-    def test_apply_move(self, heap, stones, state, player, apply_move, board, move_cls, nim):
+    def test_apply_move(
+            self, heap, stones, state, player, apply_move, board, move_cls, nim,
+    ):
         move = move_cls(heap, stones)
         state_new = apply_move(
             board=board,

@@ -1,12 +1,11 @@
 from dataclasses import dataclass
 from functools import total_ordering
-from itertools import product
 import random
 import sys
 from typing import Any, List, Tuple, Optional, Generator, Set
 
 
-POSSIBLE_PLAYERS: Set[int] = {-1, 1, 2}  # -1 <- tied
+POSSIBLE_PLAYERS: Set[int] = {1, 2}
 POSSIBLE_HEAPS: Set[int] = {0, 1, 2}
 
 
@@ -73,6 +72,10 @@ class CliInputAgent(Agent):  # TODO: move to common
 
     def next_move(self, game: 'Game') -> Move:
         moves = get_legal_moves(game)
+        print(f"playing last possible move: {moves[0]}", flush=True)
+        if len(moves) == 1:
+            return moves[0]
+
         print("possible moves: ", sorted(moves), flush=True)
 
         move = self._ask_input()
@@ -239,8 +242,6 @@ def winner_to_score(winner: Player) -> float:
         return 1.0
     if winner == 2:
         return 0.0
-    if winner == -1:  # tie
-        return 0.5
 
     raise ValueError
 

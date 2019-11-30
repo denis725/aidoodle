@@ -69,7 +69,7 @@ class TestSelection:
 
 
 class TestAgentTicTacToe:
-    @pytest.fixture
+    @pytest.fixture(scope='session')
     def engine(self):
         from aidoodle.games import tictactoe as engine
         return engine
@@ -121,7 +121,7 @@ class TestAgentTicTacToe:
         ('random', 'mcts'),
         ('mcts', 'random'),
     ])
-    def test_simulation_against_random(self, engine, agent1, agent2):
+    def test_simulation_against_random(self, agent1, agent2):
         # mcts should mostly win against random
         from aidoodle.run import simulate
 
@@ -143,7 +143,7 @@ class TestAgentTicTacToe:
         (10, 100),
         (100, 10),
     ])
-    def test_simulation_different_depths(self, engine, n_iter1, n_iter2):
+    def test_simulation_different_depths(self, n_iter1, n_iter2):
         # mcts 100 vs mcts 10 should mostly win
         from aidoodle.run import simulate
 
@@ -161,7 +161,7 @@ class TestAgentTicTacToe:
             assert n_wins2 > 25
 
     @pytest.mark.slow
-    def test_simulation_equal_depths(self, engine):
+    def test_simulation_equal_depths(self):
         # mcts against itself should mostly tie
 
         # note that n_iter must be sufficiently high, otherwise the
@@ -180,7 +180,7 @@ class TestAgentTicTacToe:
 
 
 class TestAgentNim:
-    @pytest.fixture
+    @pytest.fixture(scope='session')
     def engine(self):
         from aidoodle.games import nim
         return nim
@@ -239,7 +239,7 @@ class TestAgentNim:
         ('random', 'mcts'),
         ('mcts', 'random'),
     ])
-    def test_simulation_against_random(self, engine, agent1, agent2):
+    def test_simulation_against_random(self, agent1, agent2):
         # mcts should mostly win against random
         from aidoodle.run import simulate
 
@@ -252,16 +252,16 @@ class TestAgentNim:
             n_runs=50,
         )
         if agent1 == 'mcts':
-            assert n_wins1 > 25
+            assert n_wins1 > 30
         else:
-            assert n_wins2 > 25
+            assert n_wins2 > 30
 
     @pytest.mark.slow
     @pytest.mark.parametrize('n_iter1, n_iter2', [
         (10, 100),
         (100, 10),
     ])
-    def test_simulation_different_depths(self, engine, n_iter1, n_iter2):
+    def test_simulation_different_depths(self, n_iter1, n_iter2):
         # mcts 100 vs mcts 10 should mostly win
         from aidoodle.run import simulate
 
@@ -274,12 +274,12 @@ class TestAgentNim:
             n_runs=50,
         )
         if n_iter1 > n_iter2:
-            assert n_wins1 > 25
+            assert n_wins1 > 30
         else:
-            assert n_wins2 > 25
+            assert n_wins2 > 30
 
     @pytest.mark.slow
-    def test_simulation_equal_depths(self, engine):
+    def test_simulation_equal_depths(self):
         # mcts against itself should win and lose about equally
         from aidoodle.run import simulate
 

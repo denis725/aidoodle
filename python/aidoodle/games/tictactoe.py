@@ -71,6 +71,10 @@ class CliInputAgent(Agent):
 
     def next_move(self, game: 'Game') -> Move:
         moves = get_legal_moves(game)
+        print(f"playing last possible move: {moves[0]}", flush=True)
+        if len(moves) == 1:
+            return moves[0]
+
         print("possible moves: ", sorted(moves), flush=True)
 
         move = self._ask_input()
