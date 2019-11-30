@@ -8,7 +8,6 @@ from aidoodle import core
 
 
 C = math.sqrt(2)  # from literature
-C = 1
 EPS = 1e-12  # for numerical stability
 VERBOSE = 0
 
@@ -174,10 +173,13 @@ def search_iteration(
 class MctsAgent:
     engine: Any
     n_iter: int = 1000
+    reuse_cache: bool = True
+    cache: Dict[core.Game, Node] = field(default_factory=dict)
 
     def next_move(self, game: core.Game) -> core.Move:
         root = Node(game=game)
-        cache: Dict[core.Game, Node] = {}
+        cache: Dict[core.Game, Node] = self.cache if self.reuse_cache else {}
+
         for _ in range(self.n_iter):
             search_iteration(node=root, engine=self.engine, cache=cache)
 
@@ -185,4 +187,4 @@ class MctsAgent:
         return edge.move
 
     def __repr__(self) -> str:
-        return f"MctsAgent(n_iter={self.n_iter})"
+        return f"MctsAgent(n_iter={self.n_iter}, learning={self.reuse_cache})"

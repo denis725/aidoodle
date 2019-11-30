@@ -71,10 +71,11 @@ def _play_game(player1, player2, engine, silent=False):
 
 @click.command()
 @click.option('--start', default=True, type=click.BOOL, help="whether you start")
-@click.option('--agent', default='mcts', type=click.Choice(AGENTS), help='which agent')
-@click.option('--game', default='tictactoe', type=click.Choice(list(GAMES)), help='which game')
-@click.option('--n_iter', default=1000, type=click.INT, help='agent depth')
-def run(start, agent, game, n_iter):
+@click.option('--agent', default='mcts', type=click.Choice(AGENTS), help="which agent")
+@click.option('--game', default='tictactoe', type=click.Choice(list(GAMES)), help="which game")
+@click.option('--n_iter', default=1000, type=click.INT, help="agent depth")
+@click.option('--learning', default=False, type=click.BOOL, help="agent learns between games")
+def run(start, agent, game, n_iter, learning=False):
     engine = ENGINES[game]
 
     player_idx, agent_idx = (1, 2) if start else (2, 1)
@@ -84,7 +85,12 @@ def run(start, agent, game, n_iter):
         player_agent = engine.Player(agent_idx)
     elif agent == 'mcts':
         player_agent = engine.Player(
-            agent_idx, agent=MctsAgent(engine=engine, n_iter=n_iter))
+            agent_idx,
+            agent=MctsAgent(
+                engine=engine,
+                n_iter=n_iter,
+                reuse_cache=learning,
+            ))
     else:
         raise ValueError
 
@@ -96,27 +102,40 @@ def run(start, agent, game, n_iter):
 
 
 @click.command()
-@click.option('--game', default='tictactoe', type=click.Choice(GAMES), help='which game')
-@click.option('--agent1', default='mcts', type=click.Choice(AGENTS), help='choose agent 1')
-@click.option('--agent2', default='mcts', type=click.Choice(AGENTS), help='choose agent 2')
-@click.option('--n_iter1', default=1000, type=click.INT, help='agent 1 depth')
-@click.option('--n_iter2', default=1000, type=click.INT, help='agent 2 depth')
-@click.option('--n_runs', default=100, type=click.INT, help='number of simulations')
-@click.option('--silent', default=True, type=click.BOOL, help='show intermediate results')
-def simulate(game, agent1, agent2, n_iter1, n_iter2, n_runs, silent=True):
+@click.option('--game', default='tictactoe', type=click.Choice(GAMES), help="which game")
+@click.option('--agent1', default='mcts', type=click.Choice(AGENTS), help="choose agent 1")
+@click.option('--agent2', default='mcts', type=click.Choice(AGENTS), help="choose agent 2")
+@click.option('--n_iter1', default=1000, type=click.INT, help="agent 1 depth")
+@click.option('--n_iter2', default=1000, type=click.INT, help="agent 2 depth")
+@click.option('--learning1', default=False, type=click.BOOL, help="agent 1 learns between game")
+@click.option('--learning2', default=False, type=click.BOOL, help="agent 2 learns between game")
+@click.option('--n_runs', default=100, type=click.INT, help="number of simulations")
+@click.option('--silent', default=True, type=click.BOOL, help="show intermediate results")
+def simulate(
+        game, agent1, agent2, n_iter1, n_iter2, n_runs,
+        learning1=False, learning2=False, silent=True,
+):
     engine = ENGINES[game]
 
     if agent1 == 'random':
         player1 = engine.Player(1)
     elif agent1 == 'mcts':
-        player1 = engine.Player(1, agent=MctsAgent(engine=engine, n_iter=n_iter1))
+        player1 = engine.Player(1, agent=MctsAgent(
+            engine=engine,
+            n_iter=n_iter1,
+            reuse_cache=learning1,
+        ))
     else:
         raise ValueError
 
     if agent2 == 'random':
         player2 = engine.Player(2)
     elif agent2 == 'mcts':
-        player2 = engine.Player(2, agent=MctsAgent(engine=engine, n_iter=n_iter2))
+        player2 = engine.Player(2, agent=MctsAgent(
+            engine=engine,
+            n_iter=n_iter2,
+            reuse_cache=learning2,
+        ))
     else:
         raise ValueError
 

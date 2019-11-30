@@ -156,9 +156,9 @@ class TestAgentTicTacToe:
             n_runs=50,
         )
         if n_iter1 > n_iter2:
-            assert n_wins1 > 25
+            assert n_wins1 > 30
         else:
-            assert n_wins2 > 25
+            assert n_wins2 > 30
 
     @pytest.mark.slow
     def test_simulation_equal_depths(self):

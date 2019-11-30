@@ -1,6 +1,8 @@
-## Develop
+# Game AIs developed in Python
 
-```
+## Installation
+
+```bash
 conda env create
 source activate aidoodle
 pip install -e .
@@ -13,20 +15,45 @@ mypy --strict aidoodle && py.test aidoodle
 
 ## Play against AI
 
+### Tips
+
+Currently, you can play against a random AI (boring) or against monte
+carlo tree search (MCTS). When playing against MCTS, increase the
+number of iterations (`--n_iter`) to increase the difficulty. As a
+rule of thumb, 100 is a weak opponent, 1000 good, 5000 very good.
+
+You can also allow the agent to learn between games by setting
+`--learning true`. If you do, start with a small `n_iter` like 50 and
+watch how the AI becomes stronger each game.
+
 Note: When a possible move is, e.g., `Move(0, 1)`, you should enter
 `0,1` to make that move.
 
-```
-ai-play
-ai-play --n_iter 5000 --start false
-ai-play --agent random
+### Commands
 
-ai-play --n_iter 3000 --game nim
+You can play each of the games against the AI. Type
+
+```bash
+ai-play --help
+```
+
+to see the options.
+
+```bash
+ai-play  # play tic tac toe
+ai-play --agent random  # play against random
+ai-play --start false  # play second
+ai-play --n_iter 5000  # play against strong opponent
+ai-play --learning true --n_iter 50  # opponent becomes stronger over time
+
+ai-play --game nim  # play nim
+
+ai-play --game dice  # play dice
 ```
 
 ## Simulate AI
 
-```
+```bash
 ai-simulate
 ai-simulate --n_iter1 500 --agent2 random --n_runs 10 --silent false
 ```
