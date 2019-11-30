@@ -4,6 +4,7 @@ from dataclasses import replace
 
 import click
 
+from aidoodle.games import dumbdice
 from aidoodle.games import nim
 from aidoodle.games import tictactoe
 from aidoodle.ai.mcts import MctsAgent
@@ -13,6 +14,7 @@ AGENTS = ['random', 'mcts', 'cli']
 ENGINES = {
     'tictactoe': tictactoe,
     'nim': nim,
+    'dice': dumbdice,
 }
 GAMES = list(ENGINES)
 

@@ -287,8 +287,126 @@ class TestAgentNim:
             game='nim',
             agent1='mcts',
             agent2='mcts',
-            n_iter1=50,
-            n_iter2=50,
+            n_iter1=100,
+            n_iter2=100,
+            n_runs=50,
+        )
+        assert abs(n_wins1 - n_wins2) <= 15
+
+
+class TestAgentDumbDice:
+    @pytest.fixture(scope='session')
+    def engine(self):
+        from aidoodle.games import dumbdice
+        return dumbdice
+
+    @pytest.fixture
+    def agent(self, engine):
+        from aidoodle.ai.mcts import MctsAgent
+        return MctsAgent(engine, n_iter=500)
+
+    def test_mcts_situation_1(self, engine, agent):
+        # agent should reroll because of bad dice
+        dice_ = engine.Die(2), engine.Die(2)
+        board = engine.Board(state=(0, 4, 50), dice=dice_)
+        game = engine.init_game(board=board)
+        move = agent.next_move(game)
+        assert move == 'r'
+
+    def test_mcts_situation_2(self, engine, agent):
+        # agent should continue because of good dice
+        dice_ = engine.Die(5), engine.Die(5)
+        board = engine.Board(state=(0, 4, 50), dice=dice_)
+        game = engine.init_game(board=board)
+        move = agent.next_move(game)
+        assert move == 'c'
+
+    def test_mcts_situation_3(self, engine, agent):
+        # even though the agent has a good roll, it should reroll
+        # because it can only win with at least 11
+        dice_ = engine.Die(5), engine.Die(5)
+        board = engine.Board(state=(39, 49, 50), dice=dice_)
+        game = engine.init_game(board=board)
+        move = agent.next_move(game)
+        assert move == 'r'
+
+    def test_mcts_situation_4(self, engine, agent):
+        # similar situation as the last one but since there is still
+        # some way left before the game ends, the agent should keep
+        # the good 10 this time
+        dice_ = engine.Die(5), engine.Die(5)
+        board = engine.Board(state=(39, 49, 100), dice=dice_)
+        game = engine.init_game(board=board)
+        move = agent.next_move(game)
+        assert move == 'c'
+
+    def test_mcts_situation_5(self, engine, agent):
+        # agent should keep because it will reach 48, which is a
+        # guaranteed win next round. There is no risk since the
+        # opponent cannot win this round. If the agent rerolls,
+        # however, it could still lose with some bad rolls (e.g. d1,d1
+        # and d1,d1).
+        dice_ = engine.Die(3), engine.Die(2)
+        board = engine.Board(state=(43, 37, 50), dice=dice_)
+        game = engine.init_game(board=board)
+        move = agent.next_move(game)
+        assert move == 'c'
+
+    @pytest.mark.slow
+    @pytest.mark.parametrize('agent1, agent2', [
+        ('random', 'mcts'),
+        ('mcts', 'random'),
+    ])
+    def test_simulation_against_random(self, agent1, agent2):
+        # mcts should mostly win against random
+        from aidoodle.run import simulate
+
+        _, n_wins1, n_wins2, _ = simulate.callback(
+            game='dice',
+            agent1=agent1,
+            agent2=agent2,
+            n_iter1=100,
+            n_iter2=100,
+            n_runs=100,
+        )
+        if agent1 == 'mcts':
+            assert n_wins1 > 60
+        else:
+            assert n_wins2 > 60
+
+    @pytest.mark.slow
+    @pytest.mark.parametrize('n_iter1, n_iter2', [
+        (10, 100),
+        (100, 10),
+    ])
+    def test_simulation_different_depths(self, n_iter1, n_iter2):
+        # mcts 100 vs mcts 10 should mostly win
+        from aidoodle.run import simulate
+
+        _, n_wins1, n_wins2, _ = simulate.callback(
+            game='dice',
+            agent1='mcts',
+            agent2='mcts',
+            n_iter1=n_iter1,
+            n_iter2=n_iter2,
+            n_runs=100,
+        )
+        if n_iter1 > n_iter2:
+            assert n_wins1 > 60
+        else:
+            assert n_wins2 > 60
+
+    @pytest.mark.slow
+    def test_simulation_equal_depths(self):
+        # mcts against itself should win and lose about equally
+        from aidoodle.run import simulate
+
+        _, n_wins1, n_wins2, _ = simulate.callback(
+            game='dice',
+            agent1='mcts',
+            agent2='mcts',
+            n_iter1=100,
+            n_iter2=100,
             n_runs=50,
         )
         assert abs(n_wins1 - n_wins2) <= 15

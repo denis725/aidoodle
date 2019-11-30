@@ -18,8 +18,9 @@ REQUIRED_ATTRS = [
 def engines():
     from aidoodle.games import tictactoe
     from aidoodle.games import nim
+    from aidoodle.games import dumbdice
 
-    return [tictactoe, nim]
+    return [tictactoe, nim, dumbdice]
 
 
 class TestCommon:
