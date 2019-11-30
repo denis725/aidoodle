@@ -8,7 +8,7 @@ pip install -e .
 mypy --strict aidoodle
 py.test --runslow aidoodle
 
-py.test aidoodle && mypy --strict aidoodle
+mypy --strict aidoodle && py.test aidoodle
 ```
 
 ## Play against AI

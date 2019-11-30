@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 import enum
 import math
 import random
-from typing import Any, List, Optional, Union, Iterable, TypeVar
+from typing import Any, List, Optional, Union, Iterable, TypeVar, Dict
 
 from aidoodle import core
 
@@ -21,8 +21,6 @@ class Edge:
     move: core.Move
     w: float = 0.0
     s: int = 0
-    prev_node: Optional['Node'] = None
-    next_node: Optional['Node'] = None
 
     def __repr__(self) -> str:
         return f"Edge({self.move}, w={self.w}, s={self.s})"
@@ -32,14 +30,16 @@ class Edge:
 class Node:
     game: core.Game
     edges: List[Edge] = field(default_factory=list)
-    prev_edge: Optional[Edge] = None
-    next_edge: Optional[Edge] = None
 
     def __repr__(self) -> str:
         g = str(hash(self.game) % 1000) + '..'
         return f"Node(n_children={len(self.edges)}, game={g})"
 
+    def __hash__(self) -> int:
+        return hash(self.game)
 
+
+_Players = List[core.Player]
 _Edges = List[Edge]
 _Nodes = List[Node]
 MaybeNode = Optional[Node]
@@ -119,39 +119,37 @@ def _update_edge(edge: Edge, value: float) -> None:
 
 
 COUNTER = 0
-def update(edge: Edge, value: float, i=0) -> None:
-    global COUNTER
-    COUNTER += 1
-    if i > 2:
-        import pdb; pdb.set_trace()
-
-    if not (edge and edge.prev_node):
-        return
-
-    node = edge.prev_node
-
-    if node.game.player == 1:
-        _update_edge(edge, value=value)
-    else:
-        _update_edge(edge, value=1 - value)
-
-    update(node.prev_edge, value=value, i=i+1)
+def update(edges: _Edges, players: _Players, value: float) -> None:
+    value_other = 1 - value
+    for edge, player in zip(edges, players):
+        if player == 1:
+            _update_edge(edge=edge, value=value)
+        elif player == 2:
+            _update_edge(edge=edge, value=value_other)
 
 
 def search_iteration(
         node: Node,
         engine: Any,  # should be ModuleType but that causes issues with mypy
+        cache: Dict[core.Game, Node],
         strategy: Strategy = Strategy.ucb1,
 ) -> None:
     # selection
+    cache[node.game] = node
+    edges: _Edges = []
+    players: _Players = []
+
     while node.edges:
         edge = select(node.edges, strategy=strategy)
-        node.next_edge = edge
-        edge.prev_node = node
-
-        node = Node(game=engine.make_move(game=node.game, move=edge.move))
-        node.prev_edge = edge
-        edge.next_node = node
+        edges.append(edge)
+        players.append(node.game.player)
+        game = engine.make_move(game=node.game, move=edge.move)
+        maybe_node: MaybeNode = cache.get(game)
+        if maybe_node is None:
+            node = Node(game=game)
+            cache[game] = node
+        else:
+            node = maybe_node
 
     # expansion
     expand(node, engine=engine)
@@ -159,12 +157,9 @@ def search_iteration(
     if node.edges:  # end game not reached
         # not end state -> choose random move
         edge = random.choice(node.edges)
-        node.next_edge = edge
-        edge.prev_node = node
-
         game = engine.make_move(game=node.game, move=edge.move)
-        node = Node(game=game, prev_edge=edge)
-        edge.next_node = node
+        edges.append(edge)
+        players.append(game.player)
     else:  # end state reached
         game = node.game
 
@@ -172,7 +167,7 @@ def search_iteration(
     value = simulate(game, engine=engine)
 
     # update
-    update(edge, value=value)
+    update(edges, players=players, value=value)
 
 
 @dataclass(frozen=True)
@@ -182,12 +177,11 @@ class MctsAgent:
 
     def next_move(self, game: core.Game) -> core.Move:
         root = Node(game=game)
+        cache: Dict[core.Game, Node] = {}
         for _ in range(self.n_iter):
-            search_iteration(node=root, engine=self.engine)
+            search_iteration(node=root, engine=self.engine, cache=cache)
 
         edge = choose_edge(root.edges)
-
-        print("*" * 25, COUNTER, "*" * 25)
         return edge.move
 
     def __repr__(self) -> str:
