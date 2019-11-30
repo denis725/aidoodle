@@ -8,7 +8,7 @@ from aidoodle import core
 
 
 C = math.sqrt(2)  # from literature
-C = 10
+C = 1
 EPS = 1e-12  # for numerical stability
 VERBOSE = 0
 
