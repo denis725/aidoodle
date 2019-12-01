@@ -8,11 +8,13 @@ source activate aidoodle
 pip install -e .
 
 mypy --strict aidoodle
-py.test --runslow aidoodle
+py.test --runslow
 pylint aidoodle
 
-mypy --strict aidoodle && py.test aidoodle  # quick tests
+mypy --strict aidoodle && py.test  # quick tests
 ```
+
+Note: Due to randomness, some tests are flaky.
 
 ## Play against AI
 
