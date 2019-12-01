@@ -41,6 +41,7 @@ class Node:
 _Players = List[core.Player]
 _Edges = List[Edge]
 _Nodes = List[Node]
+_Cache = Dict[core.Game, Node]
 MaybeNode = Optional[Node]
 
 
@@ -127,34 +128,39 @@ def update(edges: _Edges, players: _Players, value: float) -> None:
             _update_edge(edge=edge, value=value_other)
 
 
+def _retrieve_node(game: core.Game, cache: _Cache) -> Node:
+    maybe_node: MaybeNode = cache.get(game)
+    if maybe_node is not None:
+        return maybe_node
+
+    node = Node(game=game)
+    cache[game] = node
+    return node
+
+
 def search_iteration(
         node: Node,
         engine: Any,  # should be ModuleType but that causes issues with mypy
-        cache: Dict[core.Game, Node],
+        cache: _Cache,
         strategy: Strategy = Strategy.ucb1,
 ) -> None:
-    # selection
     cache[node.game] = node
     edges: _Edges = []
     players: _Players = []
 
+    # selection
     while node.edges:
         edge = select(node.edges, strategy=strategy)
         edges.append(edge)
         players.append(node.game.player)
         game = engine.make_move(game=node.game, move=edge.move)
-        maybe_node: MaybeNode = cache.get(game)
-        if maybe_node is None:
-            node = Node(game=game)
-            cache[game] = node
-        else:
-            node = maybe_node
+        node = _retrieve_node(game=game, cache=cache)  # updates cache if necessary
 
     # expansion
     expand(node, engine=engine)
 
-    if node.edges:  # end game not reached
-        # not end state -> choose random move
+    if node.edges:  # game end not reached
+        # -> choose random move
         edge = random.choice(node.edges)
         game = engine.make_move(game=node.game, move=edge.move)
         edges.append(edge)
@@ -174,11 +180,11 @@ class MctsAgent:
     engine: Any
     n_iter: int = 1000
     reuse_cache: bool = True
-    cache: Dict[core.Game, Node] = field(default_factory=dict)
+    cache: _Cache = field(default_factory=dict)
 
     def next_move(self, game: core.Game) -> core.Move:
         root = Node(game=game)
-        cache: Dict[core.Game, Node] = self.cache if self.reuse_cache else {}
+        cache: _Cache = self.cache if self.reuse_cache else {}
 
         for _ in range(self.n_iter):
             search_iteration(node=root, engine=self.engine, cache=cache)

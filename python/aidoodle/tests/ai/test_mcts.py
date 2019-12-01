@@ -1,7 +1,6 @@
 # type: ignore
 
-
-from dataclasses import replace
+# pylint: disable=import-outside-toplevel
 
 import pytest
 
@@ -84,8 +83,8 @@ class TestAgentTicTacToe:
         board = engine.Board(state=(
             (1, 1, 0),
             (0, 0, 0),
-            (0, 2, 2)),
-        )
+            (0, 2, 2)
+        ))
         game = engine.init_game(board=board)
         move = agent.next_move(game)
         expected = engine.Move(0, 2)
@@ -96,8 +95,8 @@ class TestAgentTicTacToe:
         board = engine.Board(state=(
             (1, 1, 0),
             (0, 1, 0),
-            (0, 2, 2)),
-        )
+            (0, 2, 2)
+        ))
         game = engine.init_game(board=board, player_idx=1)
         move = agent.next_move(game)
         expected = engine.Move(2, 0)
@@ -109,8 +108,8 @@ class TestAgentTicTacToe:
         board = engine.Board(state=(
             (1, 0, 0),
             (0, 2, 0),
-            (0, 0, 1)),
-        )
+            (0, 0, 1)
+        ))
         game = engine.init_game(board=board, player_idx=1)
         move = agent.next_move(game)
         assert move != engine.Move(0, 2)

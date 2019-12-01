@@ -8,6 +8,7 @@ import pytest
 
 @pytest.fixture
 def ttt():
+    # pylint: disable=import-outside-toplevel
     import aidoodle.games.tictactoe as ttt
     return ttt
 

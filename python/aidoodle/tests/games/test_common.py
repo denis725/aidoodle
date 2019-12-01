@@ -16,6 +16,7 @@ REQUIRED_ATTRS = [
 ]
 
 def engines():
+    # pylint: disable=import-outside-toplevel
     from aidoodle.games import tictactoe
     from aidoodle.games import nim
     from aidoodle.games import dumbdice

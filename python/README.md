@@ -9,8 +9,9 @@ pip install -e .
 
 mypy --strict aidoodle
 py.test --runslow aidoodle
+pylint aidoodle
 
-mypy --strict aidoodle && py.test aidoodle
+mypy --strict aidoodle && py.test aidoodle  # quick tests
 ```
 
 ## Play against AI

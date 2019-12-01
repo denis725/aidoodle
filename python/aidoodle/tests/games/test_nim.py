@@ -6,6 +6,7 @@ import pytest
 
 @pytest.fixture(scope='session')
 def nim():
+    # pylint: disable=import-outside-toplevel
     from aidoodle.games import nim
     return nim
 
@@ -52,7 +53,7 @@ class TestLegalMoves:
     def get_legal_moves(self, nim):
         return nim.get_legal_moves
 
-    def test_moves_board_empty(self, nim, board_cls, move_cls, get_legal_moves):
+    def test_moves_board_empty(self, nim, board_cls, get_legal_moves):
         board = board_cls((0, 0, 0))
         game = nim.init_game(board=board)
         moves = set(get_legal_moves(game))

@@ -58,7 +58,7 @@ class RandomAgent(Agent):
 
 
 class CliInputAgent(Agent):
-    def _ask_input(self) -> Move:
+    def _ask_input(self) -> Move:  # pylint: disable=no-self-use
         inp = input("choose next move: ")
         if inp == 'q':
             sys.exit(0)
@@ -205,6 +205,7 @@ def _transpose_board(board: Board) -> Board:
     return Board((row0, row1, row2))
 
 
+# pylint: disable=too-many-return-statements
 def determine_winner(game: Game) -> MaybePlayer:
     board = game.board
     players = game.players

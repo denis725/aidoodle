@@ -5,6 +5,7 @@ import pytest
 
 @pytest.fixture(scope='session')
 def dice():
+    # pylint: disable=import-outside-toplevel
     from aidoodle.games import dumbdice
     return dumbdice
 
@@ -36,7 +37,7 @@ class TestBoardWinner:
         ((45, 58, 58), 2),
     ])
     def test_determine_winner(
-            self, state, winner, dice, roll, init_game, board_cls, determine_winner,
+            self, state, winner, roll, init_game, board_cls, determine_winner,
     ):
         # rolled dice don't matter
         board = board_cls(state=state, dice=roll())
@@ -50,19 +51,19 @@ class TestLegalMoves:
     def get_legal_moves(self, dice):
         return dice.get_legal_moves
 
-    def test_moves_reroll(self, dice, board_cls, roll, init_game, get_legal_moves):
+    def test_moves_reroll(self, board_cls, roll, init_game, get_legal_moves):
         board = board_cls(state=(0, 0, 1), dice=roll(), rerolled=False)
         game = init_game(board=board)
         moves = set(get_legal_moves(game))
         assert moves == {'c', 'r'}
 
-    def test_moves_no_reroll(self, dice, board_cls, roll, init_game, get_legal_moves):
+    def test_moves_no_reroll(self, board_cls, roll, init_game, get_legal_moves):
         board = board_cls(state=(0, 0, 1), dice=roll(), rerolled=True)
         game = init_game(board=board)
         moves = set(get_legal_moves(game))
         assert moves == {'c'}
 
-    def test_moves_won(self, dice, board_cls, roll, init_game, get_legal_moves):
+    def test_moves_won(self, board_cls, roll, init_game, get_legal_moves):
         # player 1 has won
         board = board_cls(state=(2, 0, 1), dice=roll(), rerolled=True)
         game = init_game(board=board)
@@ -91,7 +92,8 @@ class TestApplyMoves:
             ((10, 20, 30), 6, 5, 2, 'c', (10, 31, 30), False),
             ((10, 20, 30), 6, 1, 1, 'r', (10, 20, 30), True),
             ((10, 20, 30), 6, 1, 2, 'r', (10, 20, 30), True),
-    ])
+        ],
+    )
     def test_apply_move(
             self, apply_move, die_cls, board_cls, move_cls,
             state, d0, d1, player, move, state_expected, rerolled_expected,

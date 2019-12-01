@@ -51,7 +51,7 @@ def play_game(*args, n_runs=None, **kwargs):
     return n_games, n_wins1, n_wins2, n_ties
 
 
-def _void(*args, **kwargs):
+def _void(*args, **kwargs):  # pylint: disable=unused-argument
     pass
 
 
@@ -70,11 +70,16 @@ def _play_game(player1, player2, engine, silent=False):
 
 
 @click.command()
-@click.option('--start', default=True, type=click.BOOL, help="whether you start")
-@click.option('--agent', default='mcts', type=click.Choice(AGENTS), help="which agent")
-@click.option('--game', default='tictactoe', type=click.Choice(list(GAMES)), help="which game")
-@click.option('--n_iter', default=1000, type=click.INT, help="agent depth")
-@click.option('--learning', default=False, type=click.BOOL, help="agent learns between games")
+@click.option('--start', default=True, type=click.BOOL,
+              help="whether you start")
+@click.option('--agent', default='mcts', type=click.Choice(AGENTS),
+              help="which agent")
+@click.option('--game', default='tictactoe', type=click.Choice(list(GAMES)),
+              help="which game")
+@click.option('--n_iter', default=1000, type=click.INT,
+              help="agent depth")
+@click.option('--learning', default=False, type=click.BOOL,
+              help="agent learns between games")
 def run(start, agent, game, n_iter, learning=False):
     engine = ENGINES[game]
 
@@ -102,16 +107,25 @@ def run(start, agent, game, n_iter, learning=False):
 
 
 @click.command()
-@click.option('--game', default='tictactoe', type=click.Choice(GAMES), help="which game")
-@click.option('--agent1', default='mcts', type=click.Choice(AGENTS), help="choose agent 1")
-@click.option('--agent2', default='mcts', type=click.Choice(AGENTS), help="choose agent 2")
-@click.option('--n_iter1', default=1000, type=click.INT, help="agent 1 depth")
-@click.option('--n_iter2', default=1000, type=click.INT, help="agent 2 depth")
-@click.option('--learning1', default=False, type=click.BOOL, help="agent 1 learns between game")
-@click.option('--learning2', default=False, type=click.BOOL, help="agent 2 learns between game")
-@click.option('--n_runs', default=100, type=click.INT, help="number of simulations")
-@click.option('--silent', default=True, type=click.BOOL, help="show intermediate results")
-def simulate(
+@click.option('--game', default='tictactoe', type=click.Choice(GAMES),
+              help="which game")
+@click.option('--agent1', default='mcts', type=click.Choice(AGENTS),
+              help="choose agent 1")
+@click.option('--agent2', default='mcts', type=click.Choice(AGENTS),
+              help="choose agent 2")
+@click.option('--n_iter1', default=1000, type=click.INT,
+              help="agent 1 depth")
+@click.option('--n_iter2', default=1000, type=click.INT,
+              help="agent 2 depth")
+@click.option('--learning1', default=False, type=click.BOOL,
+              help="agent 1 learns between game")
+@click.option('--learning2', default=False, type=click.BOOL,
+              help="agent 2 learns between game")
+@click.option('--n_runs', default=100, type=click.INT,
+              help="number of simulations")
+@click.option('--silent', default=True, type=click.BOOL,
+              help="show intermediate results")
+def simulate(  # pylint: disable=too-many-arguments,too-many-locals
         game, agent1, agent2, n_iter1, n_iter2, n_runs,
         learning1=False, learning2=False, silent=True,
 ):

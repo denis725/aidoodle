@@ -64,7 +64,7 @@ class Move:
         return hash(self.m)
 
 
-class Agent:  # TODO: move to common
+class Agent:
     def next_move(self, game: 'Game') -> Move:
         raise NotImplementedError
 
@@ -72,14 +72,14 @@ class Agent:  # TODO: move to common
         return self.__class__.__name__
 
 
-class RandomAgent(Agent):  # TODO: move to common
+class RandomAgent(Agent):
     def next_move(self, game: 'Game') -> Move:
         legal_moves = get_legal_moves(game)
         return random.choice(legal_moves)
 
 
-class CliInputAgent(Agent):  # TODO: move to common
-    def _ask_input(self) -> Move:
+class CliInputAgent(Agent):
+    def _ask_input(self) -> Move:  # pylint: disable=no-self-use
         inp = input("choose next move: ")
         if inp == 'q':
             sys.exit(0)
@@ -110,7 +110,7 @@ class CliInputAgent(Agent):  # TODO: move to common
 
 
 @dataclass(frozen=True)
-class Player:  # TODO move to common
+class Player:
     i: int
     agent: Agent = RandomAgent()
 
