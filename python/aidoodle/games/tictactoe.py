@@ -18,7 +18,7 @@ class Move:
 
     def __post_init__(self) -> None:
         if (self.i, self.j) not in POSSIBLE_MOVES:
-            raise ValueError
+            raise ValueError("Impossible move")
 
     def __repr__(self) -> str:
         return f"Move({self.i}, {self.j})"
@@ -95,7 +95,7 @@ class Player:
 
     def __post_init__(self) -> None:
         if self.i not in POSSIBLE_PLAYERS:
-            raise ValueError
+            raise ValueError("Illegal player")
 
     def __repr__(self) -> str:
         if self.i == -1:
@@ -279,7 +279,7 @@ def apply_move(
     i_row, i_col = move
 
     if state[i_row][i_col] != 0:
-        raise ValueError('illegal move')
+        raise ValueError('Illegal move')
 
     state_new = (
         _make_row(state[0], player, i_col) if i_row == 0 else state[0],
@@ -310,7 +310,7 @@ def winner_to_score(winner: Player) -> float:
     if winner == -1:  # tie
         return 0.5
 
-    raise ValueError
+    raise ValueError("Illegal player")
 
 
 

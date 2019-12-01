@@ -17,7 +17,7 @@ class Move:
 
     def __post_init__(self) -> None:
         if self.i not in POSSIBLE_HEAPS:
-            raise ValueError
+            raise ValueError("Impossible heap")
         if self.j < 1:
             raise ValueError("You have to take at least one stone")
 
@@ -96,7 +96,7 @@ class Player:
 
     def __post_init__(self) -> None:
         if self.i not in POSSIBLE_PLAYERS:
-            raise ValueError
+            raise ValueError("Illegal player")
 
     def __repr__(self) -> str:
         if self.i == -1:
@@ -243,7 +243,7 @@ def winner_to_score(winner: Player) -> float:
     if winner == 2:
         return 0.0
 
-    raise ValueError
+    raise ValueError("Illegal player")
 
 
 def init_game(board: MaybeBoard = None, player_idx: int = 0) -> Game:

@@ -16,7 +16,7 @@ class Die:
 
     def __post_init__(self) -> None:
         if self.eye not in POSSIBLE_EYES:
-            raise ValueError
+            raise ValueError("Eyes must be from 1 to 6")
 
     def __repr__(self) -> str:
         return f"Die({self.eye})"
@@ -46,7 +46,7 @@ class Move:
 
     def __post_init__(self) -> None:
         if self.m not in POSSIBLE_MOVES:
-            raise ValueError
+            raise ValueError("Illegal move")
 
     def __repr__(self) -> str:
         return f"Move({self.m})"
@@ -116,7 +116,7 @@ class Player:
 
     def __post_init__(self) -> None:
         if self.i not in POSSIBLE_PLAYERS:
-            raise ValueError
+            raise ValueError("Illegal player")
 
     def __repr__(self) -> str:
         if self.i == -1:
@@ -226,7 +226,7 @@ def apply_move(
     state = board.state
 
     if (move == 'r') and board.rerolled:
-        raise ValueError('illegal move')
+        raise ValueError('Illegal move')
 
     dice = roll()
     if move == 'r':
@@ -265,8 +265,7 @@ def winner_to_score(winner: Player) -> float:
     if winner == 2:
         return 0.0
 
-    raise ValueError
-
+    raise ValueError("Illegal player")
 
 
 def init_game(board: MaybeBoard = None, player_idx: int = 0) -> Game:

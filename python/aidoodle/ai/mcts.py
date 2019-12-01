@@ -72,7 +72,7 @@ def select(edges: _Edges, strategy: Strategy = Strategy.ucb1) -> Edge:
         return random.choice(edges)
     if strategy == Strategy.ucb1:
         return select_ucb1(edges)
-    raise TypeError
+    raise ValueError("Unknown strategy")
 
 
 def choose_edge(edges: _Edges) -> Edge:
