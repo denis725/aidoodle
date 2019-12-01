@@ -24,7 +24,7 @@ def play_game(
         agent1: Agents,
         agent2: Agents,
         engine: Engine,
-        silent: bool = True,
+        silent: bool = False,
         n_runs: Optional[int] = None,
 ) -> Tuple[int, int, int, int]:
     n_games = 0
@@ -82,6 +82,7 @@ def _play_game(
 
         sink(game.board, flush=True)
         move = agent.next_move(game)
+        sink(f"{agent.player} performs move {move}", flush=True)
         game = engine.make_move(game=game, move=move)
 
     sink(game.board)

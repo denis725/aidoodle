@@ -92,6 +92,7 @@ class Board:
             "0 " + self._rrow(0),
             "1 " + self._rrow(1),
             "2 " + self._rrow(2),
+            "",
         ))
 
     def __iter__(self) -> Generator[_Row, None, None]:

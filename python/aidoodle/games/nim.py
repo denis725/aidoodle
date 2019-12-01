@@ -78,7 +78,7 @@ class Board:
     state: Tuple[int, int, int] = (3, 4, 5)
 
     def __repr__(self) -> str:
-        header = "|" + "|".join(map(str, range(len(self)))) + "|\n"
+        header = "\n|" + "|".join(map(str, range(len(self)))) + "|\n"
         header += "|" + "+".join('-' for _ in range(len(self))) + "|\n"
         return header + "|" + "|".join(map(str, self.state)) + "|\n"
 

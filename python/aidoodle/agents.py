@@ -41,7 +41,6 @@ class CliInputAgent(Agent):
 
     def next_move(self, game: Game) -> Move:
         moves = self.engine.get_legal_moves(game)
-        print(f"playing last possible move: {moves[0]}", flush=True)
         if len(moves) == 1:
             return moves[0]
 
@@ -51,7 +50,6 @@ class CliInputAgent(Agent):
         while move not in moves:
             move = self._ask_input()
 
-        print(f"performing move {move}", flush=True)
         return move
 
     def __repr__(self) -> str:

@@ -150,12 +150,11 @@ class Board:
     rerolled: bool = False
 
     def __repr__(self) -> str:
-        line = "-" * 24
         dice = f"{self.dice[0].eye} + {self.dice[1].eye}"
         header = f"dice: {dice} | target: {self.state[2]}"
         players = "   player 1 | player 2"
         scores = "   {: >8} | {: <8}".format(self.state[0], self.state[1])
-        return "\n".join((line, header, players, scores, ""))
+        return "\n".join(("", header, players, scores, ""))
 
     def __eq__(self, other: Any) -> bool:
         try:
