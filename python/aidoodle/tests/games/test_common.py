@@ -5,12 +5,10 @@ import pytest
 
 
 REQUIRED_ATTRS = [
-    'Game',
-    'Board',
-    'Player',
-    'Move',
-    'get_legal_moves',
     'init_game',
+    'init_move',
+    'init_player',
+    'get_legal_moves',
     'make_move',
     'winner_to_score',
 ]
@@ -20,6 +18,7 @@ def engines():
     from aidoodle.games import tictactoe
     from aidoodle.games import nim
     from aidoodle.games import dumbdice
+    from aidoodle.core import Engine
 
     return [tictactoe, nim, dumbdice]
 

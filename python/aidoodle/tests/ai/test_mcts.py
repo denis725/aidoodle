@@ -81,11 +81,11 @@ class TestAgentTicTacToe:
 
     @pytest.fixture
     def agent1(self, agent_cls, engine):
-        return agent_cls(player=engine.Player(1))
+        return agent_cls(player=engine.init_player(1))
 
     @pytest.fixture
     def agent2(self, agent_cls, engine):
-        return agent_cls(player=engine.Player(1))
+        return agent_cls(player=engine.init_player(1))
 
     def test_mcts_situation_1(self, engine, agent1):
         # player 1 should make the wining move
@@ -200,7 +200,7 @@ class TestAgentNim:
 
     @pytest.fixture
     def agent(self, agent_cls, engine):
-        return agent_cls(player=engine.Player(1))
+        return agent_cls(player=engine.init_player(1))
 
     def test_mcts_situation_1(self, engine, agent):
         # agent should make the wining move of leaving exactly one stone
@@ -315,11 +315,11 @@ class TestAgentDumbDice:
     @pytest.fixture
     def agent_cls(self, engine):
         from aidoodle.agents import MctsAgent
-        return partial(MctsAgent, engine=engine, n_iter=500)
+        return partial(MctsAgent, engine=engine, n_iter=2000)
 
     @pytest.fixture
     def agent(self, agent_cls, engine):
-        return agent_cls(player=engine.Player(1))
+        return agent_cls(player=engine.init_player(1))
 
     def test_mcts_situation_1(self, engine, agent):
         # agent should reroll because of bad dice
