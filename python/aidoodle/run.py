@@ -1,25 +1,32 @@
-# type: ignore
-
 from dataclasses import replace
+from typing import Any, Optional, Tuple, Dict
 
 import click
 
+from aidoodle.agents import Agents, MctsAgent, RandomAgent, CliInputAgent
+from aidoodle.core import Engine
+from aidoodle.core import Player
 from aidoodle.games import dumbdice
 from aidoodle.games import nim
 from aidoodle.games import tictactoe
-from aidoodle.ai.mcts import MctsAgent
 
 
 AGENTS = ['random', 'mcts', 'cli']
-ENGINES = {
-    'tictactoe': tictactoe,
-    'nim': nim,
-    'dice': dumbdice,
+ENGINES: Dict[str, Engine] = {
+    'tictactoe': tictactoe,  # type: ignore
+    'nim': nim,  # type: ignore
+    'dice': dumbdice,  # type: ignore
 }
 GAMES = list(ENGINES)
 
 
-def play_game(*args, n_runs=None, **kwargs):
+def play_game(
+        agent1: Agents,
+        agent2: Agents,
+        engine: Engine,
+        silent: bool = True,
+        n_runs: Optional[int] = None,
+) -> Tuple[int, int, int, int]:
     n_games = 0
     n_wins1 = 0
     n_wins2 = 0
@@ -27,7 +34,7 @@ def play_game(*args, n_runs=None, **kwargs):
 
     cont = 't'
     while cont not in {'f', 'q', 'quit'}:
-        winner = _play_game(*args, **kwargs)
+        winner = _play_game(agent1=agent1, agent2=agent2, engine=engine, silent=silent)
         if n_runs is None:
             cont = input("(q) to quit playing: ")
 
@@ -51,21 +58,34 @@ def play_game(*args, n_runs=None, **kwargs):
     return n_games, n_wins1, n_wins2, n_ties
 
 
-def _void(*args, **kwargs):  # pylint: disable=unused-argument
+def _void(*args: Any, **kwargs: Any) -> None:  # pylint: disable=unused-argument
     pass
 
 
-def _play_game(player1, player2, engine, silent=False):
-    sink = _void if silent else print
+def _play_game(
+        agent1: Agents,
+        agent2: Agents,
+        engine: Engine,
+        silent: bool = False,
+) -> Player:
+    sink: Any = _void if silent else print
     game = engine.init_game()
-    game = replace(game, players=(player1, player2))
+    game = replace(game, players=(agent1.player, agent2.player))
 
     while not game.winner:
+        if game.player == agent1.player:
+            agent = agent1
+        elif game.player == agent2.player:
+            agent = agent2
+        else:
+            raise ValueError
+
         sink(game.board, flush=True)
-        game = engine.make_move(game=game)
+        move = agent.next_move(game)
+        game = engine.make_move(game=game, move=move)
 
     sink(game.board)
-    sink(f"Winner: {game.winner}")
+    sink(f"Winner: {agent1 if game.winner == 1 else agent2}")
     return game.winner
 
 
@@ -80,30 +100,44 @@ def _play_game(player1, player2, engine, silent=False):
               help="agent depth")
 @click.option('--learning', default=False, type=click.BOOL,
               help="agent learns between games")
-def run(start, agent, game, n_iter, learning=False):
+def run(
+        start: bool,
+        agent: str,
+        game: str,
+        n_iter: int,
+        learning: bool = False,
+) -> Tuple[int, int, int, int]:
     engine = ENGINES[game]
 
     player_idx, agent_idx = (1, 2) if start else (2, 1)
-    player = engine.Player(player_idx, agent=engine.CliInputAgent())
 
+    agent1 = CliInputAgent(
+        player=engine.init_player(player_idx),
+        engine=engine,
+    )
+
+    agent2: Agents
     if agent == 'random':
-        player_agent = engine.Player(agent_idx)
+        agent2 = RandomAgent(
+            player=engine.init_player(agent_idx),
+            engine=engine,
+        )
     elif agent == 'mcts':
-        player_agent = engine.Player(
-            agent_idx,
-            agent=MctsAgent(
-                engine=engine,
-                n_iter=n_iter,
-                reuse_cache=learning,
-            ))
+        agent2 = MctsAgent(
+            player=engine.init_player(agent_idx),
+            engine=engine,
+            n_iter=n_iter,
+            reuse_cache=learning,
+        )
     else:
         raise ValueError
 
-    print(f"Playing {game} against {player_agent.agent}")
+    print(f"Playing {game} against {agent2}")
     if start:
-        play_game(player, player_agent, engine=engine)
+        n_games, n_wins1, n_wins2, n_ties = play_game(agent1, agent2, engine=engine)
     else:
-        play_game(player_agent, player, engine=engine)
+        n_games, n_wins1, n_wins2, n_ties = play_game(agent2, agent1, engine=engine)
+    return n_games, n_wins1, n_wins2, n_ties
 
 
 @click.command()
@@ -126,33 +160,44 @@ def run(start, agent, game, n_iter, learning=False):
 @click.option('--silent', default=True, type=click.BOOL,
               help="show intermediate results")
 def simulate(  # pylint: disable=too-many-arguments,too-many-locals
-        game, agent1, agent2, n_iter1, n_iter2, n_runs,
-        learning1=False, learning2=False, silent=True,
-):
+        game: str,
+        agent1: str,
+        agent2: str,
+        n_iter1: int,
+        n_iter2: int,
+        n_runs: int,
+        learning1: bool = False,
+        learning2: bool = False,
+        silent: bool = True,
+) -> Tuple[int, int, int, int]:
     engine = ENGINES[game]
 
+    agent1_: Agents
     if agent1 == 'random':
-        player1 = engine.Player(1)
+        agent1_ = RandomAgent(engine=engine, player=engine.init_player(1))
     elif agent1 == 'mcts':
-        player1 = engine.Player(1, agent=MctsAgent(
+        agent1_ = MctsAgent(
+            player=engine.init_player(1),
             engine=engine,
             n_iter=n_iter1,
             reuse_cache=learning1,
-        ))
+        )
     else:
         raise ValueError
 
+    agent2_: Agents
     if agent2 == 'random':
-        player2 = engine.Player(2)
+        agent2_ = RandomAgent(engine=engine, player=engine.init_player(2))
     elif agent2 == 'mcts':
-        player2 = engine.Player(2, agent=MctsAgent(
+        agent2_ = MctsAgent(
+            player=engine.init_player(2),
             engine=engine,
             n_iter=n_iter2,
             reuse_cache=learning2,
-        ))
+        )
     else:
         raise ValueError
 
     n_games, n_wins1, n_wins2, n_ties = play_game(
-        player1, player2, engine=engine, n_runs=n_runs, silent=silent)
+        agent1_, agent2_, engine=engine, n_runs=n_runs, silent=silent)
     return n_games, n_wins1, n_wins2, n_ties

@@ -2,9 +2,9 @@ from dataclasses import dataclass, field
 import enum
 import math
 import random
-from typing import Any, List, Optional, Union, Iterable, TypeVar, Dict
+from typing import List, Optional, Union, Iterable, TypeVar, Dict
 
-from aidoodle import core
+from aidoodle.core import Engine, Game, Move, Player
 
 
 C = math.sqrt(2)  # from literature
@@ -17,7 +17,7 @@ T = TypeVar('T')
 
 @dataclass
 class Edge:
-    move: core.Move
+    move: Move
     w: float = 0.0
     s: int = 0
 
@@ -27,7 +27,7 @@ class Edge:
 
 @dataclass
 class Node:
-    game: core.Game
+    game: Game
     edges: List[Edge] = field(default_factory=list)
 
     def __repr__(self) -> str:
@@ -38,10 +38,10 @@ class Node:
         return hash(self.game)
 
 
-_Players = List[core.Player]
+_Players = List[Player]
 _Edges = List[Edge]
 _Nodes = List[Node]
-_Cache = Dict[core.Game, Node]
+Cache = Dict[Game, Node]
 MaybeNode = Optional[Node]
 
 
@@ -82,14 +82,14 @@ def choose_edge(edges: _Edges) -> Edge:
     return edge
 
 
-def expand(node: Node, engine: Any) -> None:
-    moves: List[core.Move] = engine.get_legal_moves(node.game)
+def expand(node: Node, engine: Engine) -> None:
+    moves: List[Move] = engine.get_legal_moves(node.game)
     edges = [Edge(move) for move in moves]
     assert not node.edges
     node.edges = edges
 
 
-def simulate(game: core.Game, engine: Any) -> float:
+def simulate(game: Game, engine: Engine) -> float:
     # init a game with random players
     game = engine.init_game(
         board=game.board,
@@ -102,7 +102,8 @@ def simulate(game: core.Game, engine: Any) -> float:
 
     while not game.winner:
         # by default uses random play
-        game = engine.make_move(game)
+        move = random.choice(engine.get_legal_moves(game))
+        game = engine.make_move(game=game, move=move)
 
     if VERBOSE:
         print(game.board, end=' ')
@@ -128,7 +129,7 @@ def update(edges: _Edges, players: _Players, value: float) -> None:
             _update_edge(edge=edge, value=value_other)
 
 
-def _retrieve_node(game: core.Game, cache: _Cache) -> Node:
+def _retrieve_node(game: Game, cache: Cache) -> Node:
     maybe_node: MaybeNode = cache.get(game)
     if maybe_node is not None:
         return maybe_node
@@ -140,8 +141,8 @@ def _retrieve_node(game: core.Game, cache: _Cache) -> Node:
 
 def search_iteration(
         node: Node,
-        engine: Any,  # should be ModuleType but that causes issues with mypy
-        cache: _Cache,
+        engine: Engine,
+        cache: Cache,
         strategy: Strategy = Strategy.ucb1,
 ) -> None:
     cache[node.game] = node
@@ -173,24 +174,3 @@ def search_iteration(
 
     # update
     update(edges, players=players, value=value)
-
-
-@dataclass(frozen=True)
-class MctsAgent:
-    engine: Any
-    n_iter: int = 1000
-    reuse_cache: bool = True
-    cache: _Cache = field(default_factory=dict)
-
-    def next_move(self, game: core.Game) -> core.Move:
-        root = Node(game=game)
-        cache: _Cache = self.cache if self.reuse_cache else {}
-
-        for _ in range(self.n_iter):
-            search_iteration(node=root, engine=self.engine, cache=cache)
-
-        edge = choose_edge(root.edges)
-        return edge.move
-
-    def __repr__(self) -> str:
-        return f"MctsAgent(n_iter={self.n_iter}, learning={self.reuse_cache})"

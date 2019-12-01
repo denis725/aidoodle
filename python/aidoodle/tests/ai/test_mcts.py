@@ -2,6 +2,7 @@
 
 # pylint: disable=import-outside-toplevel
 
+from functools import partial
 import pytest
 
 
@@ -74,11 +75,19 @@ class TestAgentTicTacToe:
         return engine
 
     @pytest.fixture
-    def agent(self, engine):
-        from aidoodle.ai.mcts import MctsAgent
-        return MctsAgent(engine, n_iter=1000)
+    def agent_cls(self, engine):
+        from aidoodle.agents import MctsAgent
+        return partial(MctsAgent, engine=engine, n_iter=1000)
 
-    def test_mcts_situation_1(self, engine, agent):
+    @pytest.fixture
+    def agent1(self, agent_cls, engine):
+        return agent_cls(player=engine.Player(1))
+
+    @pytest.fixture
+    def agent2(self, agent_cls, engine):
+        return agent_cls(player=engine.Player(1))
+
+    def test_mcts_situation_1(self, engine, agent1):
         # player 1 should make the wining move
         board = engine.Board(state=(
             (1, 1, 0),
@@ -86,11 +95,11 @@ class TestAgentTicTacToe:
             (0, 2, 2)
         ))
         game = engine.init_game(board=board)
-        move = agent.next_move(game)
+        move = agent1.next_move(game)
         expected = engine.Move(0, 2)
         assert move == expected
 
-    def test_mcts_situation_2(self, engine, agent):
+    def test_mcts_situation_2(self, engine, agent2):
         # player 2 should make the winning move
         board = engine.Board(state=(
             (1, 1, 0),
@@ -98,11 +107,11 @@ class TestAgentTicTacToe:
             (0, 2, 2)
         ))
         game = engine.init_game(board=board, player_idx=1)
-        move = agent.next_move(game)
+        move = agent2.next_move(game)
         expected = engine.Move(2, 0)
         assert move == expected
 
-    def test_mcts_situation_3(self, engine, agent):
+    def test_mcts_situation_3(self, engine, agent2):
         # player 2 shouldn't move 0,2 or 2,0 since this will lead to a
         # winning move for player 1 by placing on the opposite side
         board = engine.Board(state=(
@@ -111,7 +120,7 @@ class TestAgentTicTacToe:
             (0, 0, 1)
         ))
         game = engine.init_game(board=board, player_idx=1)
-        move = agent.next_move(game)
+        move = agent2.next_move(game)
         assert move != engine.Move(0, 2)
         assert move != engine.Move(2, 0)
 
@@ -185,9 +194,13 @@ class TestAgentNim:
         return nim
 
     @pytest.fixture
-    def agent(self, engine):
-        from aidoodle.ai.mcts import MctsAgent
-        return MctsAgent(engine, n_iter=500)
+    def agent_cls(self, engine):
+        from aidoodle.agents import MctsAgent
+        return partial(MctsAgent, engine=engine, n_iter=500)
+
+    @pytest.fixture
+    def agent(self, agent_cls, engine):
+        return agent_cls(player=engine.Player(1))
 
     def test_mcts_situation_1(self, engine, agent):
         # agent should make the wining move of leaving exactly one stone
@@ -300,9 +313,13 @@ class TestAgentDumbDice:
         return dumbdice
 
     @pytest.fixture
-    def agent(self, engine):
-        from aidoodle.ai.mcts import MctsAgent
-        return MctsAgent(engine, n_iter=500)
+    def agent_cls(self, engine):
+        from aidoodle.agents import MctsAgent
+        return partial(MctsAgent, engine=engine, n_iter=500)
+
+    @pytest.fixture
+    def agent(self, agent_cls, engine):
+        return agent_cls(player=engine.Player(1))
 
     def test_mcts_situation_1(self, engine, agent):
         # agent should reroll because of bad dice

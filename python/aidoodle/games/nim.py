@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from functools import total_ordering
 import random
-import sys
 from typing import Any, List, Tuple, Optional, Generator, Set
 
 
@@ -44,55 +43,9 @@ class Move:
         return hash((self.i, self.j))
 
 
-class Agent:
-    def next_move(self, game: 'Game') -> Move:
-        raise NotImplementedError
-
-    def __repr__(self) -> str:
-        return self.__class__.__name__
-
-
-class RandomAgent(Agent):
-    def next_move(self, game: 'Game') -> Move:
-        legal_moves = get_legal_moves(game)
-        return random.choice(legal_moves)
-
-
-class CliInputAgent(Agent):
-    def _ask_input(self) -> Move:  # pylint: disable=no-self-use
-        inp = input("choose next move: ")
-        if inp == 'q':
-            sys.exit(0)
-
-        try:
-            move = Move(*eval(inp))
-        except (TypeError, NameError):
-            sys.exit(1)
-        return move
-
-    def next_move(self, game: 'Game') -> Move:
-        moves = get_legal_moves(game)
-        print(f"playing last possible move: {moves[0]}", flush=True)
-        if len(moves) == 1:
-            return moves[0]
-
-        print("possible moves: ", sorted(moves), flush=True)
-
-        move = self._ask_input()
-        while move not in moves:
-            move = self._ask_input()
-
-        print(f"performing move {move}", flush=True)
-        return move
-
-    def __repr__(self) -> str:
-        return "You"
-
-
 @dataclass(frozen=True)
 class Player:
     i: int
-    agent: Agent = RandomAgent()
 
     def __post_init__(self) -> None:
         if self.i not in POSSIBLE_PLAYERS:
@@ -101,7 +54,7 @@ class Player:
     def __repr__(self) -> str:
         if self.i == -1:
             return "tied"
-        return f"Player({self.i}, {self.agent})"
+        return f"Player({self.i})"
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, Player):
@@ -220,14 +173,18 @@ def apply_move(
     return Board(state=state_new)
 
 
-def get_move(game: Game) -> Move:
-    return game.player.agent.next_move(game)
+def init_move(s: str) -> Move:
+    i: int
+    j: int
+    i, j = eval(s)
+    return Move(i, j)
 
 
-def make_move(game: Game, move: Optional[Move] = None) -> Game:
-    if move is None:
-        move = get_move(game)
+def init_player(i: int) -> Player:
+    return Player(i)
 
+
+def make_move(game: Game, move: Move) -> Game:
     board = apply_move(board=game.board, move=move, player=game.player)
     player_idx = get_next_player_idx(game)
     return Game(

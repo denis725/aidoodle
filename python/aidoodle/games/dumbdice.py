@@ -63,6 +63,10 @@ class Move:
     def __hash__(self) -> int:
         return hash(self.m)
 
+    def __lt__(self, other: Any) -> bool:
+        eq: bool = self.m < other.m
+        return eq
+
 
 class Agent:
     def next_move(self, game: 'Game') -> Move:
@@ -112,7 +116,6 @@ class CliInputAgent(Agent):
 @dataclass(frozen=True)
 class Player:
     i: int
-    agent: Agent = RandomAgent()
 
     def __post_init__(self) -> None:
         if self.i not in POSSIBLE_PLAYERS:
@@ -121,7 +124,7 @@ class Player:
     def __repr__(self) -> str:
         if self.i == -1:
             return "tied"
-        return f"Player({self.i}, {self.agent})"
+        return f"Player({self.i})"
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, Player):
@@ -214,10 +217,6 @@ def get_legal_moves(game: Game) -> List[Move]:
     return [Move('r'), Move('c')]
 
 
-def get_move(game: Game) -> Move:
-    return game.player.agent.next_move(game)
-
-
 def apply_move(
         board: Board,
         move: Move,
@@ -241,10 +240,15 @@ def apply_move(
     return Board(state=state_new, dice=dice)
 
 
-def make_move(game: Game, move: Optional[Move] = None) -> Game:
-    if move is None:
-        move = get_move(game)
+def init_move(s: str) -> Move:
+    return Move(s)
 
+
+def init_player(i: int) -> Player:
+    return Player(i)
+
+
+def make_move(game: Game, move: Move) -> Game:
     board = apply_move(board=game.board, move=move, player=game.player)
 
     if move == 'c':  # change player only on continue
