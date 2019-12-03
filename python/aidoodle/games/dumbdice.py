@@ -68,51 +68,6 @@ class Move:
         return eq
 
 
-class Agent:
-    def next_move(self, game: 'Game') -> Move:
-        raise NotImplementedError
-
-    def __repr__(self) -> str:
-        return self.__class__.__name__
-
-
-class RandomAgent(Agent):
-    def next_move(self, game: 'Game') -> Move:
-        legal_moves = get_legal_moves(game)
-        return random.choice(legal_moves)
-
-
-class CliInputAgent(Agent):
-    def _ask_input(self) -> Move:  # pylint: disable=no-self-use
-        inp = input("choose next move: ")
-        if inp == 'q':
-            sys.exit(0)
-
-        try:
-            move = Move(inp)
-        except (TypeError, NameError):
-            sys.exit(1)
-        return move
-
-    def next_move(self, game: 'Game') -> Move:
-        moves = get_legal_moves(game)
-        print(f"playing last possible move: {moves[0]}", flush=True)
-        if len(moves) == 1:
-            return moves[0]
-
-        print("possible moves: ", sorted(moves, key=lambda m: m.m), flush=True)
-
-        move = self._ask_input()
-        while move not in moves:
-            move = self._ask_input()
-
-        print(f"performing move {move}", flush=True)
-        return move
-
-    def __repr__(self) -> str:
-        return "You"
-
-
 @dataclass(frozen=True)
 class Player:
     i: int
