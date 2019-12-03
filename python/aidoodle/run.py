@@ -1,4 +1,5 @@
 from dataclasses import replace
+import time
 from typing import Any, Optional, Tuple, Dict
 
 import click
@@ -18,6 +19,7 @@ ENGINES: Dict[str, Engine] = {
     'dice': dumbdice,  # type: ignore
 }
 GAMES = list(ENGINES)
+PAUSE = 0.5  # human play
 
 
 def play_game(
@@ -26,6 +28,7 @@ def play_game(
         engine: Engine,
         silent: bool = False,
         n_runs: Optional[int] = None,
+        pause: float = 0.0,
 ) -> Tuple[int, int, int, int]:
     n_games = 0
     n_wins1 = 0
@@ -34,7 +37,13 @@ def play_game(
 
     cont = 't'
     while cont not in {'f', 'q', 'quit'}:
-        winner = _play_game(agent1=agent1, agent2=agent2, engine=engine, silent=silent)
+        winner = _play_game(
+            agent1=agent1,
+            agent2=agent2,
+            engine=engine,
+            silent=silent,
+            pause=pause,
+        )
         if n_runs is None:
             cont = input("(q) to quit playing: ")
 
@@ -67,10 +76,12 @@ def _play_game(
         agent2: Agents,
         engine: Engine,
         silent: bool = False,
+        pause: float = 0.0,
 ) -> Player:
     sink: Any = _void if silent else print
     game = engine.init_game()
     game = replace(game, players=(agent1.player, agent2.player))
+    waited = 0.0
 
     while not game.winner:
         if game.player == agent1.player:
@@ -81,7 +92,12 @@ def _play_game(
             raise ValueError
 
         sink(game.board, flush=True)
+        time.sleep(max(0.0, pause - waited))
+
+        tic = time.time()
         move = agent.next_move(game)
+        waited = time.time() - tic
+
         sink(f"{agent.player} performs move {move}", flush=True)
         game = engine.make_move(game=game, move=move)
 
@@ -135,9 +151,11 @@ def run(
 
     print(f"Playing {game} against {agent2}")
     if start:
-        n_games, n_wins1, n_wins2, n_ties = play_game(agent1, agent2, engine=engine)
+        n_games, n_wins1, n_wins2, n_ties = play_game(
+            agent1, agent2, engine=engine, pause=PAUSE)
     else:
-        n_games, n_wins1, n_wins2, n_ties = play_game(agent2, agent1, engine=engine)
+        n_games, n_wins1, n_wins2, n_ties = play_game(
+            agent2, agent1, engine=engine, pause=PAUSE)
     return n_games, n_wins1, n_wins2, n_ties
 
 
