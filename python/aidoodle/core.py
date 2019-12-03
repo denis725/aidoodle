@@ -1,15 +1,16 @@
 from typing import List, Optional, Union
 from typing_extensions import Protocol
 
-from aidoodle.games import tictactoe as ttt
-from aidoodle.games import nim
+from aidoodle.games import battle
 from aidoodle.games import dumbdice as dice
+from aidoodle.games import nim
+from aidoodle.games import tictactoe as ttt
 
 
-Board = Union[ttt.Board, nim.Board, dice.Board]
-Move = Union[ttt.Move, nim.Move, dice.Move]
-Game = Union[ttt.Game, nim.Game, dice.Game]
-Player = Union[ttt.Player, nim.Player, dice.Player]
+Board = Union[ttt.Board, nim.Board, dice.Board, battle.Board]
+Move = Union[ttt.Move, nim.Move, dice.Move, battle.Move]
+Game = Union[ttt.Game, nim.Game, dice.Game, battle.Game]
+Player = Union[ttt.Player, nim.Player, dice.Player, battle.Player]
 
 
 class Engine(Protocol):

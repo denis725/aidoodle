@@ -426,3 +426,78 @@ class TestAgentDumbDice:
             n_runs=50,
         )
         assert abs(n_wins1 - n_wins2) <= 15
+
+
+class TestAgentBattle:
+    @pytest.fixture(scope='session')
+    def engine(self):
+        from aidoodle.games import battle
+        return battle
+
+    @pytest.fixture
+    def agent_cls(self, engine):
+        from aidoodle.agents import MctsAgent
+        return partial(MctsAgent, engine=engine, n_iter=500)
+
+    @pytest.fixture
+    def agent(self, agent_cls, engine):
+        return agent_cls(player=engine.init_player(1))
+
+    @pytest.fixture
+    def ranger_cls(self, engine):
+        return engine.Ranger
+
+    @pytest.fixture
+    def melee_cls(self, engine):
+        return engine.Melee
+
+    def test_mcts_situation_1(self, engine, agent):
+        # should attack the archer first
+        game = engine.init_game()
+        move = agent.next_move(game)
+        assert move == engine.Move(1, 1)
+
+    def test_mcts_situation_2(self, engine, agent, ranger_cls, melee_cls):
+        p1 = engine.Player(1)
+        p2 = engine.Player(2)
+        row0 = (
+            ranger_cls(owner=p1),
+            ranger_cls(owner=p1),
+            melee_cls(owner=p1),
+            None,
+            None)
+        row1 = (
+            melee_cls(owner=p2),
+            ranger_cls(owner=p2),
+            ranger_cls(owner=p2),
+            None,
+            None)
+        board = engine.Board(
+            state=(row0, row1),
+            active_idx=(0, 2),
+        )
+        game = engine.init_game(board=board)
+        move = agent.next_move(game)
+        assert move == engine.Move(1, 1)
+
+    @pytest.mark.slow
+    @pytest.mark.parametrize('agent1, agent2', [
+        ('random', 'mcts'),
+        ('mcts', 'random'),
+    ])
+    def test_simulation_against_random(self, agent1, agent2):
+        # mcts should mostly win against random
+        from aidoodle.run import simulate
+
+        _, n_wins1, n_wins2, _ = simulate.callback(
+            game='dice',
+            agent1=agent1,
+            agent2=agent2,
+            n_iter1=100,
+            n_iter2=100,
+            n_runs=100,
+        )
+        if agent1 == 'mcts':
+            assert n_wins1 > 60
+        else:
+            assert n_wins2 > 60

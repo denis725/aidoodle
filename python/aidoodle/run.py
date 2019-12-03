@@ -7,6 +7,7 @@ import click
 from aidoodle.agents import Agents, MctsAgent, RandomAgent, CliInputAgent
 from aidoodle.core import Engine
 from aidoodle.core import Player
+from aidoodle.games import battle
 from aidoodle.games import dumbdice
 from aidoodle.games import nim
 from aidoodle.games import tictactoe
@@ -17,6 +18,7 @@ ENGINES: Dict[str, Engine] = {
     'tictactoe': tictactoe,  # type: ignore
     'nim': nim,  # type: ignore
     'dice': dumbdice,  # type: ignore
+    'battle': battle,  # type: ignore
 }
 GAMES = list(ENGINES)
 PAUSE = 0.5  # human play
