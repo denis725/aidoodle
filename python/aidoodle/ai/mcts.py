@@ -10,6 +10,7 @@ from aidoodle.core import Engine, Game, Move, Player
 C = math.sqrt(2)  # from literature
 EPS = 1e-12  # for numerical stability
 VERBOSE = 0
+MAX_DEPTH = 10000
 
 Numeric = Union[float, int]
 T = TypeVar('T')
@@ -83,6 +84,8 @@ def choose_edge(edges: _Edges) -> Edge:
 
 
 def expand(node: Node, engine: Engine) -> None:
+    # Careful: if a move is the identity move, there will be an
+    # infinite recursion
     moves: List[Move] = engine.get_legal_moves(node.game)
     edges = [Edge(move) for move in moves]
     assert not node.edges
@@ -156,6 +159,10 @@ def search_iteration(
         players.append(node.game.player)
         game = engine.make_move(game=node.game, move=edge.move)
         node = _retrieve_node(game=game, cache=cache)  # updates cache if necessary
+
+        if len(edges) > MAX_DEPTH:
+            raise RuntimeError(f"Max depth of {MAX_DEPTH} in tree search encountered, "
+                               "are there cycles in the game tree?")
 
     # expansion
     expand(node, engine=engine)
