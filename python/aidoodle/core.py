@@ -21,7 +21,7 @@ class Engine(Protocol):
         ...
 
     @staticmethod
-    def init_move(s: str) -> Move:
+    def init_move(s: str, game: Optional[Game]) -> Move:
         ...
 
     @staticmethod

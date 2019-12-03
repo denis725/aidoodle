@@ -196,7 +196,10 @@ def apply_move(
     return Board(state=state_new, dice=dice)
 
 
-def init_move(s: str) -> Move:
+def init_move(
+        s: str,
+        game: Optional[Game] = None,  # pylint: disable=unused-argument
+) -> Move:
     return Move(s)
 
 

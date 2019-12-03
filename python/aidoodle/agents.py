@@ -28,13 +28,13 @@ class RandomAgent(Agent):
 
 @dataclass(frozen=True)
 class CliInputAgent(Agent):
-    def _ask_input(self) -> Move:  # pylint: disable=no-self-use
+    def _ask_input(self, game: Game) -> Move:  # pylint: disable=no-self-use
         inp = input("choose next move: ")
         if inp == 'q':
             sys.exit(0)
 
         try:
-            move: Move = self.engine.init_move(inp)
+            move: Move = self.engine.init_move(inp, game)
         except (TypeError, NameError):
             sys.exit(1)
         return move
@@ -46,9 +46,9 @@ class CliInputAgent(Agent):
 
         print("possible moves: ", sorted(moves), flush=True)
 
-        move = self._ask_input()
+        move = self._ask_input(game)
         while move not in moves:
-            move = self._ask_input()
+            move = self._ask_input(game)
 
         return move
 
