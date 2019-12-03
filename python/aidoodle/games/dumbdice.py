@@ -64,6 +64,8 @@ class Move:
         return hash(self.m)
 
     def __lt__(self, other: Any) -> bool:
+        if not isinstance(other, Move):
+            raise TypeError
         eq: bool = self.m < other.m
         return eq
 

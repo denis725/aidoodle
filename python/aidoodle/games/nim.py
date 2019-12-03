@@ -37,6 +37,8 @@ class Move:
             return False
 
     def __lt__(self, other: Any) -> bool:
+        if not isinstance(other, Move):
+            raise TypeError
         return (self.i, self.j) < (other.i, other.j)
 
     def __hash__(self) -> int:
