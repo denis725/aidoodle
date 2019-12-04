@@ -1,6 +1,5 @@
 from dataclasses import dataclass, replace
 import random
-import sys
 from typing import Any, List, Tuple, Optional, Set
 
 
