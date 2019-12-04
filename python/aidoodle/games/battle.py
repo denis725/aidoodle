@@ -333,25 +333,24 @@ def _apply_non_attack(board: Board, row_idx: int, pos: str) -> Board:
     if pos not in POSSIBLE_OTHER_ACTIONS:
         raise ValueError("Illegal move")
 
+    # apply healing
     unit_before = board.active
+    hp_new = min(unit_before.hp + HEAL, unit_before.hp_max)
+    unit_after = replace(unit_before, hp=hp_new)
+
     row = board.state[row_idx]
     unit_pos = row.index(unit_before)
-
-    # apply healing
-    unit_after = replace(
-        unit_before,
-        hp=min(unit_before.hp + HEAL, unit_before.hp_max),
-    )
-
     row_after = place_unit(row=row, pos=unit_pos, unit=unit_after)
     state_new = (
         row_after if row_idx == 0 else board.state[0],
         row_after if row_idx == 1 else board.state[1])
 
-    board_new = replace(board, state=state_new)
-    unit_idx = next_active_unit_idx(board_new)
     last_action = f"healed {unit_before} for {HEAL} HP"
-    return replace(board_new, active_idx=unit_idx, last_action=last_action)
+    return replace(
+        board,
+        state=state_new,
+        last_action=last_action,
+    )
 
 
 def _resolve_damage(attack: Attack) -> int:
@@ -361,21 +360,23 @@ def _resolve_damage(attack: Attack) -> int:
 
 
 def _apply_attack(board: Board, row_idx: int, pos: int) -> Board:
-    damage = _resolve_damage(board.active.attack)
     unit_target = board.state[row_idx][pos]
     if unit_target is None:
         raise ValueError("illegal move")
 
+    damage = _resolve_damage(board.active.attack)
     unit_after = resolve_damage(unit=unit_target, damage=damage)
     row_after = place_unit(board.state[row_idx], pos=pos, unit=unit_after)
     state_new = (
         row_after if row_idx == 0 else board.state[0],
         row_after if row_idx == 1 else board.state[1])
 
-    board_new = replace(board, state=state_new)
-    unit_idx = next_active_unit_idx(board_new)
     last_action = f"attacked {unit_target} for {damage} damage"
-    return replace(board_new, active_idx=unit_idx, last_action=last_action)
+    return replace(
+        board,
+        state=state_new,
+        last_action=last_action,
+    )
 
 
 def apply_move(
@@ -391,7 +392,8 @@ def apply_move(
     else:
         raise ValueError
 
-    return replace(board_new, round=board.round + 1)
+    active_idx = next_active_unit_idx(board_new)
+    return replace(board_new, round=board.round + 1, active_idx=active_idx)
 
 
 def init_move(
