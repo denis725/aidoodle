@@ -21,7 +21,7 @@ def engines():
     from aidoodle.games import battle
     from aidoodle.core import Engine
 
-    return [tictactoe, nim, dumbdice, battle, engine]
+    return [tictactoe, nim, dumbdice, battle, Engine]
 
 
 class TestCommon:
