@@ -117,3 +117,20 @@ player 1 should continue (`c`) because that will result in a score of
 51, which leads to a win. If player 1 rerolled, there is a good chance
 that a non-winning sum of eyes will be rolled, in which case player 2
 will most likely win, needing only a sum of 3.
+
+### Battle
+
+A simple battle game.
+
+Players have 2 types of units, melee (M) and rangers (R). These are
+their stats:
+
+* Melee: 9 hitpoints, damage 2-4
+* Ranger: 5 hitpoints, damage 1-3
+
+Units are lined up in rows. The melee unit can only attack units in
+the first two positions of the opponent's row. Rangers can attack all
+units.
+
+Moreover, units that are damaged can skip a round to heal (h) 2
+hitpoints.
