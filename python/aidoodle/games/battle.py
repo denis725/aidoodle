@@ -258,20 +258,23 @@ class Board:
         repr_units_l = list(self._repr_units(0))
         repr_units_r = list(self._repr_units(1))
 
-        numbers_l = (f" {i}" + " " * (len(r) - 2) for i, r in enumerate(repr_units_l))
-        numbers_r = (f" {i}" + " " * (len(r) - 2) for i, r in enumerate(repr_units_r, start=5))
+        numbers_l = (f" {i}" + " " * (len(r) - 2) for i, r in enumerate(
+            repr_units_l))
+        numbers_r = (f" {i}" + " " * (len(r) - 2) for i, r in enumerate(
+            repr_units_r, start=5))
+        sep = " | "
 
         return "\n".join((
             "",
             s_round,
             "",
             f"Player 1",
-            " ".join(numbers_l),
-            " ".join(repr_units_l),
+            sep.join(numbers_l),
+            sep.join(repr_units_l),
             "",
             f"Player 2",
-            " ".join(numbers_r),
-            " ".join(repr_units_r),
+            sep.join(numbers_r),
+            sep.join(repr_units_r),
             "\n",
         ))
 
