@@ -451,13 +451,8 @@ class TestAgentBattle:
     def melee_cls(self, engine):
         return engine.Melee
 
-    def test_mcts_situation_1(self, engine, agent):
-        # should attack the archer first
-        game = engine.init_game()
-        move = agent.next_move(game)
-        assert move == engine.Move(1, 1)
-
-    def test_mcts_situation_2(self, engine, agent, ranger_cls, melee_cls):
+    def test_mcts_situation_1(self, engine, agent, ranger_cls, melee_cls):
+        # should attack damaged Ranger
         p1 = engine.Player(1)
         p2 = engine.Player(2)
         row0 = (
@@ -468,17 +463,47 @@ class TestAgentBattle:
             None)
         row1 = (
             melee_cls(owner=p2),
+            ranger_cls(owner=p2, hp=1),  # damaged Ranger
+            ranger_cls(owner=p2),
+            None,
+            None)
+        board = engine.Board(
+            state=row0 + row1,
+            active_idx=2,
+        )
+        game = engine.init_game(board=board)
+        move = agent.next_move(game)
+        assert move == engine.Move(6)
+
+    def test_mcts_situation_2(self, engine, agent, ranger_cls, melee_cls):
+        # should attack buffed Ranger
+        p1 = engine.Player(1)
+        p2 = engine.Player(2)
+
+        ranger_buffed = ranger_cls(
+            owner=p2,
+            buffs=(engine.DamageBuff(round=1), engine.DamageBuff(round=1)),
+        )
+
+        row0 = (
+            ranger_cls(owner=p1),
+            ranger_cls(owner=p1),
+            melee_cls(owner=p1),
+            None,
+            None)
+        row1 = (
+            ranger_buffed,
             ranger_cls(owner=p2),
             ranger_cls(owner=p2),
             None,
             None)
         board = engine.Board(
-            state=(row0, row1),
-            active_idx=(0, 2),
+            state=row0 + row1,
+            active_idx=2,
         )
         game = engine.init_game(board=board)
         move = agent.next_move(game)
-        assert move == engine.Move(1, 1)
+        assert move == engine.Move(5)
 
     @pytest.mark.slow
     @pytest.mark.parametrize('agent1, agent2', [

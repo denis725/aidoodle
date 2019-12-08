@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field, replace
 import enum
+from functools import partial
 import random
 from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type, Union
 
@@ -37,9 +38,19 @@ class Defense(enum.Enum):
 HEAL = 2
 
 
-class Buff(enum.Enum):
+class _Buff(enum.Enum):
     damage = "damage"
-    shield = "shiled"
+    shield = "shield"
+
+
+@dataclass(frozen=True)
+class Buff:
+    round: int
+    buff: _Buff
+
+
+DamageBuff = partial(Buff, buff=_Buff.damage)
+ShieldBuff = partial(Buff, buff=_Buff.shield)
 
 
 BUFF_DAMAGE = 1
@@ -63,7 +74,7 @@ class Unit:
 
     attack: Attack   # on enemy
     defend: Defense  # on itself
-    buff: Buff    # on ally
+    buff: _Buff    # on ally
 
     buffs: Tuple[Buff, ...] = field(default_factory=tuple)
     queued: bool = True
@@ -78,11 +89,11 @@ class Unit:
 
         repr_buffs: List[str] = []
 
-        buffs_damage = [b for b in self.buffs if b == Buff.damage]
+        buffs_damage = [b for b in self.buffs if b.buff == _Buff.damage]
         if buffs_damage:
             repr_buffs.append(f"D:{BUFF_DAMAGE * len(buffs_damage)}")
 
-        buffs_shield = [b for b in self.buffs if b == Buff.shield]
+        buffs_shield = [b for b in self.buffs if b.buff == _Buff.shield]
         if buffs_shield:
             repr_buffs.append(f"S:{BUFF_SHIELD * len(buffs_shield)}")
 
@@ -105,7 +116,7 @@ class Melee(Unit):
 
     attack: Attack = Attack.sword
     defend: Defense = Defense.heal
-    buff: Buff = Buff.shield
+    buff: _Buff = _Buff.shield
 
     def __repr__(self) -> str:
         return super().__repr__()
@@ -119,7 +130,7 @@ class Ranger(Unit):
 
     attack: Attack = Attack.bow
     defend: Defense = Defense.heal
-    buff: Buff = Buff.damage
+    buff: _Buff = _Buff.damage
 
     def __repr__(self) -> str:
         return super().__repr__()
@@ -428,8 +439,8 @@ def _resolve_damage(unit: Unit, target: Unit) -> int:
     attack = unit.attack
     damage_range = DAMAGE[attack]
     damage_raw = random.randint(damage_range.i, damage_range.j)
-    blocked = sum(BUFF_SHIELD for b in target.buffs if b == Buff.shield)
-    damage_extra = sum(BUFF_DAMAGE for b in unit.buffs if b == Buff.damage)
+    blocked = sum(BUFF_SHIELD for b in target.buffs if b.buff == _Buff.shield)
+    damage_extra = sum(BUFF_DAMAGE for b in unit.buffs if b.buff == _Buff.damage)
     damage = max(0, damage_raw - blocked + damage_extra)
     return damage
 
@@ -449,7 +460,7 @@ def _apply_attack(board: Board, move: Move) -> Board:
     target_after = _apply_damage_to(unit=target, damage=damage)
     state_new = place_unit(board.state, pos=move.pos, unit=target_after)
 
-    last_action = (f"attacked {target.__class__.__name__} with {unit.attack} "
+    last_action = (f"attacked {target.__class__.__name__} with {unit.attack.name} "
                    f"for {damage} damage")
     return replace(
         board,
@@ -462,11 +473,20 @@ def _apply_buff(board: Board, move: Move) -> Board:
     active = board.active
     target = board.target(move.pos)
 
-    buffs_after = target.buffs + (active.buff,)
+    buff: Buff
+    if active.buff == _Buff.shield:
+        buff = ShieldBuff(round=board.round)
+    elif active.buff == _Buff.damage:
+        buff = DamageBuff(round=board.round)
+    else:
+        raise ValueError(f"Unknown buff {active.buff}")
+
+    buffs_after = target.buffs + (buff,)
     target_after = replace(target, buffs=buffs_after)
     state_new = place_unit(board.state, pos=move.pos, unit=target_after)
 
-    last_action = f"applied buff '{active.buff}' to {target_after.__class__.__name__}"
+    last_action = (f"applied buff '{active.buff.name}' "
+                   f"to {target_after.__class__.__name__}")
     return replace(
         board,
         state=state_new,
@@ -496,31 +516,42 @@ def _num_active_units(board: Board) -> int:
     return sum(unit.queued for unit in board.state if unit is not None)
 
 
-def _set_buffs_round_end(buffs: Tuple[Buff, ...]) -> Tuple[Buff, ...]:
-    # ATMO, keep damage, remove shield
-    return tuple(buff for buff in buffs if buff != Buff.shield)
+def _set_buffs_round_end(
+        buffs: Tuple[Buff, ...],
+        board: Board,
+) -> Generator[Buff, None, None]:
+    # ATMO, keep damage, remove shield at the end of next round
+    current_round = board.round
+    for buff in buffs:
+        if buff.buff != _Buff.shield:
+            yield buff
+            continue
+
+        if buff.round == current_round:
+            yield buff
 
 
-def _set_unit_round_end(unit: MaybeUnit) -> MaybeUnit:
+def _set_unit_round_end(unit: MaybeUnit, board: Board) -> MaybeUnit:
     if unit is None:
         return None
 
-    buffs_after = _set_buffs_round_end(unit.buffs)
+    buffs_after = tuple(_set_buffs_round_end(buffs=unit.buffs, board=board))
     return replace(unit, queued=True, buffs=buffs_after)
 
 
-def _set_units_round_end(state: Row) -> Row:
+def _set_units_round_end(board: Board) -> Row:
+    state = board.state
     return (
-        _set_unit_round_end(state[0]),
-        _set_unit_round_end(state[1]),
-        _set_unit_round_end(state[2]),
-        _set_unit_round_end(state[3]),
-        _set_unit_round_end(state[4]),
-        _set_unit_round_end(state[5]),
-        _set_unit_round_end(state[6]),
-        _set_unit_round_end(state[7]),
-        _set_unit_round_end(state[8]),
-        _set_unit_round_end(state[9]))
+        _set_unit_round_end(state[0], board=board),
+        _set_unit_round_end(state[1], board=board),
+        _set_unit_round_end(state[2], board=board),
+        _set_unit_round_end(state[3], board=board),
+        _set_unit_round_end(state[4], board=board),
+        _set_unit_round_end(state[5], board=board),
+        _set_unit_round_end(state[6], board=board),
+        _set_unit_round_end(state[7], board=board),
+        _set_unit_round_end(state[8], board=board),
+        _set_unit_round_end(state[9], board=board))
 
 
 def _apply_round_end(board: Board) -> Board:
@@ -531,7 +562,7 @@ def _apply_round_end(board: Board) -> Board:
         state = board.state
     else:
         round_after = board.round + 1
-        state = _set_units_round_end(board.state)
+        state = _set_units_round_end(board)
 
     return replace(
         board,
