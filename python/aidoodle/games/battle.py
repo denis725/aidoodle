@@ -67,6 +67,7 @@ class UnitRel(enum.Enum):
 
 @dataclass(frozen=True)
 class Unit:
+    # pylint: disable=too-many-instance-attributes
     owner: 'Player'
     hp: int
     hp_max: int
@@ -379,8 +380,6 @@ def get_legal_moves(game: Game) -> List[Move]:
 
     board = game.board
     moves = [Move(idx_target) for idx_target in _yield_legal_moves(board)]
-    if not moves:
-        import pdb; pdb.set_trace()
     return moves
 
 
