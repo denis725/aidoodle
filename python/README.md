@@ -16,6 +16,13 @@ mypy --strict aidoodle && py.test  # quick tests
 
 Note: Due to randomness, some tests are flaky.
 
+### Profiling
+
+```bash
+python -m cProfile -o profile.cprof profiling.py
+snakeviz profile.cprof
+```
+
 ## Play against AI
 
 ### Tips
