@@ -300,6 +300,7 @@ MaybeBoard = Optional[Board]
 class Game:
     players: Tuple[Player, Player]
     board: Board
+    board_init: Board
     player_idx: int = 0
 
     @property
@@ -618,49 +619,58 @@ def make_move(game: Game, move: Move) -> Game:
     return game
 
 
-def winner_to_score(winner: Player) -> float:
-    if winner == 1:
-        return 1.0
-    if winner == 2:
-        return 0.0
-    if winner == -1:  # tie
-        return 0.5
-
-    raise ValueError("Illegal player")
+def _units_left_right(state: Row) -> Tuple[int, int]:
+    left, right = state[:5], state[5:]
+    n_units_left = sum(1 for u in left if u is not None)
+    n_units_right = sum(1 for u in right if u is not None)
+    return n_units_left, n_units_right
 
 
 def game_score(game: Game) -> float:
     if game.winner is None:
         raise ValueError("Game is not over, no score yet")
 
-    return winner_to_score(game.winner)
+    if game.winner == -1:  # tie
+        return 0.5
+
+    # the logic here is as follow: The more units a side has lost
+    # compared to the other side, the worse its score
+    state_init = game.board_init.state
+    state_final = game.board.state
+    n_left_init, n_right_init = _units_left_right(state_init)
+    n_left_final, n_right_final = _units_left_right(state_final)
+    n_lost_left = n_left_init - n_left_final
+    n_lost_right = n_right_init - n_right_final
+    return n_lost_right / (n_lost_left + n_lost_right)
+
+
+def _standard_board(p1: Player, p2: Player) -> Board:
+    left = (
+        None,
+        None,
+        Ranger(owner=p1, queued=False),
+        Ranger(owner=p1),
+        Melee(owner=p1))
+    right = (
+        Melee(owner=p2),
+        None,
+        Ranger(owner=p2),
+        Ranger(owner=p2),
+        None)
+    board = Board(
+        state=left + right,
+        active_idx=3,
+    )
+    return board
 
 
 def init_game(board: MaybeBoard = None, player_idx: int = 0) -> Game:
     p1 = Player(1)
     p2 = Player(2)
-    if board is not None:
-        board_ = board
-    else:
-        left = (
-            None,
-            None,
-            Ranger(owner=p1, queued=False),
-            Ranger(owner=p1),
-            Melee(owner=p1))
-        right = (
-            Melee(owner=p2),
-            None,
-            Ranger(owner=p2),
-            Ranger(owner=p2),
-            None)
-        board_ = Board(
-            state=left + right,
-            active_idx=3,
-        )
-
+    board_ = board if board is not None else _standard_board(p1, p2)
     return Game(
         players=(p1, p2),
         board=board_,
+        board_init=board_,
         player_idx=player_idx,
     )
