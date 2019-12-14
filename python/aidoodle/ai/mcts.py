@@ -112,7 +112,7 @@ def simulate(game: Game, engine: Engine) -> float:
         print(game.board, end=' ')
         print(game.winner)
 
-    score: float = engine.winner_to_score(game.winner)
+    score: float = engine.game_score(game)
     return score
 
 

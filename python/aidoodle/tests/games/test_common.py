@@ -10,7 +10,7 @@ REQUIRED_ATTRS = [
     'init_player',
     'get_legal_moves',
     'make_move',
-    'winner_to_score',
+    'game_score',
 ]
 
 def engines():

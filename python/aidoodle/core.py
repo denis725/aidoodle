@@ -38,5 +38,5 @@ class Engine(Protocol):
         ...
 
     @staticmethod
-    def winner_to_score(winner: Player) -> float:
+    def game_score(game: Game) -> float:
         ...

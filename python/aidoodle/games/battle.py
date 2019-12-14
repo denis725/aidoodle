@@ -629,6 +629,13 @@ def winner_to_score(winner: Player) -> float:
     raise ValueError("Illegal player")
 
 
+def game_score(game: Game) -> float:
+    if game.winner is None:
+        raise ValueError("Game is not over, no score yet")
+
+    return winner_to_score(game.winner)
+
+
 def init_game(board: MaybeBoard = None, player_idx: int = 0) -> Game:
     p1 = Player(1)
     p2 = Player(2)
