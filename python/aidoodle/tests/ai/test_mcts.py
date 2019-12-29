@@ -90,10 +90,12 @@ class TestAgentTicTacToe:
     def test_mcts_situation_1(self, engine, agent1):
         # player 1 should make the wining move
         board = engine.Board(state=(
-            (1, 1, 0),
-            (0, 0, 0),
-            (0, 2, 2)
-        ))
+            (1, 1, 0, 9, 9),
+            (0, 0, 0, 9, 9),
+            (0, 2, 2, 9, 9),
+            (9, 9, 9, 9, 9),
+            (9, 9, 9, 9, 9))
+        )
         game = engine.init_game(board=board)
         move = agent1.next_move(game)
         expected = engine.Move(0, 2)
@@ -102,10 +104,12 @@ class TestAgentTicTacToe:
     def test_mcts_situation_2(self, engine, agent2):
         # player 2 should make the winning move
         board = engine.Board(state=(
-            (1, 1, 0),
-            (0, 1, 0),
-            (0, 2, 2)
-        ))
+            (1, 1, 0, 9, 9),
+            (0, 1, 0, 9, 9),
+            (0, 2, 2, 9, 9),
+            (9, 9, 9, 9, 9),
+            (9, 9, 9, 9, 9))
+        )
         game = engine.init_game(board=board, player_idx=1)
         move = agent2.next_move(game)
         expected = engine.Move(2, 0)
@@ -115,10 +119,12 @@ class TestAgentTicTacToe:
         # player 2 shouldn't move 0,2 or 2,0 since this will lead to a
         # winning move for player 1 by placing on the opposite side
         board = engine.Board(state=(
-            (1, 0, 0),
-            (0, 2, 0),
-            (0, 0, 1)
-        ))
+            (1, 0, 0, 9, 9),
+            (0, 2, 0, 9, 9),
+            (0, 0, 1, 9, 9),
+            (9, 9, 9, 9, 9),
+            (9, 9, 9, 9, 9))
+        )
         game = engine.init_game(board=board, player_idx=1)
         move = agent2.next_move(game)
         assert move != engine.Move(0, 2)

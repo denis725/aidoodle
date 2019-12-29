@@ -11,6 +11,7 @@ from aidoodle.games import battle
 from aidoodle.games import dumbdice
 from aidoodle.games import nim
 from aidoodle.games import tictactoe
+from aidoodle.games import ziczaczoe
 
 
 AGENTS = ['random', 'mcts', 'cli']
@@ -19,6 +20,7 @@ ENGINES: Dict[str, Engine] = {
     'nim': nim,  # type: ignore
     'dice': dumbdice,  # type: ignore
     'battle': battle,  # type: ignore
+    'ziczaczoe': ziczaczoe,  # type: ignore
 }
 GAMES = list(ENGINES)
 PAUSE = 0.5  # human play

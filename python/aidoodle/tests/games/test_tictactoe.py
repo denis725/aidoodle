@@ -22,31 +22,58 @@ def board_empty(ttt):
 @pytest.fixture
 def board_non_empty(ttt):
     # no winner
-    return ttt.Board(((0, 1, 1), (1, 2, 2), (2, 1, 2)))
+    return ttt.Board((
+        (0, 1, 1, 9, 9),
+        (1, 2, 2, 9, 9),
+        (2, 1, 2, 9, 9),
+        (9, 9, 9, 9, 9),
+        (9, 9, 9, 9, 9))
+    )
 
 
 @pytest.fixture
 def board_col_win(ttt):
     # player 1 wins through column 2
-    return ttt.Board(((0, 1, 2), (0, 1, 0), (2, 1, 2)))
+    return ttt.Board((
+        (0, 1, 2, 9, 9),
+        (0, 1, 0, 9, 9),
+        (2, 1, 2, 9, 9),
+        (9, 9, 9, 9, 9),
+        (9, 9, 9, 9, 9))
+    )
 
 
 @pytest.fixture
 def board_row_win(ttt):
     # player 1 wins through row 3
-    return ttt.Board(((2, 1, 2), (1, 2, 2), (1, 1, 1)))
+    return ttt.Board((
+        (2, 1, 2, 9, 9),
+        (1, 2, 2, 9, 9),
+        (1, 1, 1, 9, 9),
+        (9, 9, 9, 9, 9),
+        (9, 9, 9, 9, 9)))
 
 
 @pytest.fixture
 def board_diag_win(ttt):
     # player 2 wins through diag 2
-    return ttt.Board(((2, 0, 0), (1, 2, 1), (0, 1, 2)))
+    return ttt.Board((
+        (2, 0, 0, 9, 9),
+        (1, 2, 1, 9, 9),
+        (0, 1, 2, 9, 9),
+        (9, 9, 9, 9, 9),
+        (9, 9, 9, 9, 9)))
 
 
 @pytest.fixture
 def board_tied(ttt):
     # no-one wins and there are no more legal moves
-    return ttt.Board(((1, 2, 1), (1, 2, 2), (2, 1, 1)))
+    return ttt.Board((
+        (1, 2, 1, 9, 9),
+        (1, 2, 2, 9, 9),
+        (2, 1, 1, 9, 9),
+        (9, 9, 9, 9, 9),
+        (9, 9, 9, 9, 9)))
 
 
 class TestBoardWinner:
@@ -115,7 +142,12 @@ class TestApplyMove:
             move=ttt.Move(0, 0),
             player=ttt.Player(1),
         ).state
-        assert state_new == ((1, 0, 0), (0, 0, 0), (0, 0, 0))
+        assert state_new == (
+            (1, 0, 0, 9, 9),
+            (0, 0, 0, 9, 9),
+            (0, 0, 0, 9, 9),
+            (9, 9, 9, 9, 9),
+            (9, 9, 9, 9, 9))
 
         board = ttt.Board(state_new)
         state_new = apply_move(
@@ -123,7 +155,12 @@ class TestApplyMove:
             move=ttt.Move(1, 1),
             player=ttt.Player(2),
         ).state
-        assert state_new == ((1, 0, 0), (0, 2, 0), (0, 0, 0))
+        assert state_new == (
+            (1, 0, 0, 9, 9),
+            (0, 2, 0, 9, 9),
+            (0, 0, 0, 9, 9),
+            (9, 9, 9, 9, 9),
+            (9, 9, 9, 9, 9))
 
         board = ttt.Board(state_new)
         state_new = apply_move(
@@ -131,7 +168,12 @@ class TestApplyMove:
             move=ttt.Move(0, 2),
             player=ttt.Player(1),
         ).state
-        assert state_new == ((1, 0, 1), (0, 2, 0), (0, 0, 0))
+        assert state_new == (
+            (1, 0, 1, 9, 9),
+            (0, 2, 0, 9, 9),
+            (0, 0, 0, 9, 9),
+            (9, 9, 9, 9, 9),
+            (9, 9, 9, 9, 9))
 
         board = ttt.Board(state_new)
         state_new = apply_move(
@@ -139,7 +181,12 @@ class TestApplyMove:
             move=ttt.Move(0, 1),
             player=ttt.Player(2),
         ).state
-        assert state_new == ((1, 2, 1), (0, 2, 0), (0, 0, 0))
+        assert state_new == (
+            (1, 2, 1, 9, 9),
+            (0, 2, 0, 9, 9),
+            (0, 0, 0, 9, 9),
+            (9, 9, 9, 9, 9),
+            (9, 9, 9, 9, 9))
 
         board = ttt.Board(state_new)
         state_new = apply_move(
@@ -147,7 +194,12 @@ class TestApplyMove:
             move=ttt.Move(2, 2),
             player=ttt.Player(1),
         ).state
-        assert state_new == ((1, 2, 1), (0, 2, 0), (0, 0, 1))
+        assert state_new == (
+            (1, 2, 1, 9, 9),
+            (0, 2, 0, 9, 9),
+            (0, 0, 1, 9, 9),
+            (9, 9, 9, 9, 9),
+            (9, 9, 9, 9, 9))
 
         board = ttt.Board(state_new)
         state_new = apply_move(
@@ -155,4 +207,9 @@ class TestApplyMove:
             move=ttt.Move(2, 1),
             player=ttt.Player(2),
         ).state
-        assert state_new == ((1, 2, 1), (0, 2, 0), (0, 2, 1))
+        assert state_new == (
+            (1, 2, 1, 9, 9),
+            (0, 2, 0, 9, 9),
+            (0, 2, 1, 9, 9),
+            (9, 9, 9, 9, 9),
+            (9, 9, 9, 9, 9))
