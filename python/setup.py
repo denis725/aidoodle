@@ -38,5 +38,6 @@ setup(
         [console_scripts]
         ai-play=aidoodle.run:run
         ai-simulate=aidoodle.run:simulate
+        ai-generate-zzz-boards=aidoodle.run:generate_zzz_boards
     ''',
 )
