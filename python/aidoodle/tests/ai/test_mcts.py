@@ -468,14 +468,14 @@ class TestAgentBattle:
             None,
             None)
         row1 = (
-            melee_cls(owner=p2),
+            ranger_cls(owner=p2),
             ranger_cls(owner=p2, hp=1),  # damaged Ranger
             ranger_cls(owner=p2),
             None,
             None)
         board = engine.Board(
             state=row0 + row1,
-            active_idx=2,
+            active_idx=1,
         )
         game = engine.init_game(board=board)
         move = agent.next_move(game)
