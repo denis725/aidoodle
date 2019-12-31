@@ -59,7 +59,7 @@ class CliInputAgent(Agent):
 @dataclass(frozen=True)
 class MctsAgent(Agent):
     n_iter: int = 1000
-    reuse_cache: bool = True
+    reuse_cache: bool = False
     cache: Cache = field(default_factory=dict)
 
     def next_move(self, game: Game) -> Move:
