@@ -51,13 +51,12 @@ class Board(zzz.Board):
         ))
 
 
-
-
 MaybeBoard = Optional[Board]
 
 
 def init_game(board: MaybeBoard = None, player_idx: int = 0) -> Game:
-    zzz.Board = Board  # monkey patch tictactoe board
+    # monkey patch tictactoe board
+    zzz.Board = Board  # type: ignore
     if board is None:
         board_ = Board(TICTACTOEBOARD)
     else:
