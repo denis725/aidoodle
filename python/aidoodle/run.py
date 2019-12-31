@@ -234,6 +234,12 @@ def simulate(  # pylint: disable=too-many-arguments,too-many-locals
     return n_games, n_wins1, n_wins2, n_ties
 
 
+def available_memory() -> float:
+    """System memory in MB"""
+    import psutil
+    return psutil.virtual_memory().available / 2 ** 20
+
+
 @click.command()
 @click.option('--output', default='zzz-boards.tsv', type=click.STRING,
               help="tsv file to load/save results to")
@@ -262,22 +268,26 @@ def generate_zzz_boards(
         player=engine.init_player(1),
         engine=engine,
         n_iter=n_iter,
+        reuse_cache=False,
     )
     agent2 = MctsAgent(
         player=engine.init_player(2),
         engine=engine,
         n_iter=n_iter,
+        reuse_cache=False,
     )
 
     if not os.path.exists(output):
-        df = pd.DataFrame({'wins1': [], 'wins2': [], 'ties': [], 'board': [], 'args': []})
+        df = pd.DataFrame({
+            'wins1': [], 'wins2': [], 'ties': [], 'board': [], 'dur': [], 'iter': [],
+        })
     else:
         df = pd.read_table(output)
-    arg = json.dumps({'n_iter': n_iter, 'n_sims': n_sims})
     wins1: List[int] = df['wins1'].tolist()
     wins2: List[int] = df['wins2'].tolist()
     ties: List[int] = df['ties'].tolist()
-    args: List[str] = df['args'].tolist()
+    dur: List[float] = df['dur'].tolist()
+    iters: List[int] = df['iter'].tolist()
     boards: List[str] = df['board'].tolist()
     board_set: Set[str] = set(boards)
     counter = 1
@@ -291,20 +301,29 @@ def generate_zzz_boards(
         if board in board_set:
             continue
 
+        tic = time.time()
         print(f"Running test #{counter}")
         print(f"Using the following board")
+        print("*" * 30)
         print(str(board))
-        time.sleep(2)
+        time.sleep(1)
 
-        n_games, n_wins1, n_wins2, n_ties = play_game(
+        _, n_wins1, n_wins2, n_ties = play_game(
             agent1, agent2, engine=engine, n_runs=n_runs, board=board, silent=silent)
         wins1.append(n_wins1)
         wins2.append(n_wins2)
         ties.append(n_ties)
-        args.append(arg)
+        iters.append(n_iter)
         boards.append(str(board))
         board_set.add(str(board))
-        pd.DataFrame(
-            {'wins1': wins1, 'wins2': wins2, 'ties': ties, 'board': boards, 'args': args},
-        ).to_csv(output, sep='\t')
+        dur.append(float("{:.0f}".format(time.time() - tic)))
+        pd.DataFrame({
+            'wins1': wins1, 'wins2': wins2, 'ties': ties, 'dur': dur, 'iter': iters,
+            'board': boards,
+        }).to_csv(output, sep='\t', index=False)
         counter += 1
+
+        mem = available_memory()
+        if mem < 500:
+            raise RuntimeError(
+                "Running out of memory, only {:.0f}MB left, stopping".format(mem))
