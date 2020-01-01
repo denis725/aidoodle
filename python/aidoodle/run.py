@@ -8,6 +8,7 @@ from typing import Any, Optional, Tuple, Dict, List, Set
 import click
 
 from aidoodle.agents import Agents, MctsAgent, RandomAgent, CliInputAgent
+from aidoodle.agents import Concession
 from aidoodle.core import Board
 from aidoodle.core import Engine
 from aidoodle.core import Player
@@ -93,6 +94,7 @@ def _play_game(
     game = engine.init_game(board=board)
     game = replace(game, players=(agent1.player, agent2.player))
     waited = 0.0
+    conceded = False
 
     while not game.winner:
         if game.player == agent1.player:
@@ -106,16 +108,32 @@ def _play_game(
         time.sleep(max(0.0, pause - waited))
 
         tic = time.time()
-        move = agent.next_move(game)
-        waited = time.time() - tic
+        try:
+            move = agent.next_move(game)
+            sink(f"{agent.player} performs move {move}", flush=True)
+            game = engine.make_move(game=game, move=move)
+        except Concession as exc:
+            conf = exc.args[0]
+            sink(f"{agent.player} conceded because confidence was only {conf}")
+            conceded = True
+            break
 
-        sink(f"{agent.player} performs move {move}", flush=True)
-        game = engine.make_move(game=game, move=move)
+        waited = time.time() - tic
         gc.collect()
 
     sink(game.board)
-    sink(f"Winner: {agent1 if game.winner == 1 else agent2}")
-    return game.winner
+    if conceded:
+        winner_agent = agent1 if agent == agent2 else agent2
+        sink(f"Winner: {winner_agent}")
+        return winner_agent.player
+
+    if game.winner == -1:
+        sink("Game was tied")
+        return game.winner
+
+    winner_agent = agent1 if game.winner == 1 else agent2
+    sink(f"Winner: {winner_agent}")
+    return winner_agent.player
 
 
 @click.command()
@@ -268,12 +286,14 @@ def generate_zzz_boards(
         player=engine.init_player(1),
         engine=engine,
         n_iter=n_iter,
+        allow_concession=True,
         reuse_cache=False,
     )
     agent2 = MctsAgent(
         player=engine.init_player(2),
         engine=engine,
         n_iter=n_iter,
+        allow_concession=True,
         reuse_cache=False,
     )
 
@@ -293,7 +313,7 @@ def generate_zzz_boards(
     counter = 1
 
     while counter < n_sims:
-        board_i = ziczaczoe.random_board()
+        board_i = ziczaczoe.random_board(premade=False)
         board_t = ziczaczoe.transpose_board(board_i)
         board_m = ziczaczoe.mirror_board(board_i)
         board_tm = ziczaczoe.mirror_board(board_t)

@@ -1,10 +1,14 @@
 from dataclasses import dataclass, field
+import math
 import random
 import sys
 from typing import Union
 
 from aidoodle.core import Engine, Game, Move, Player
 from aidoodle.ai.mcts import Cache, Node, choose_edge, search_iteration
+
+
+CONCESSION_THRESHOLD = 0.4
 
 
 @dataclass(frozen=True)
@@ -56,11 +60,23 @@ class CliInputAgent(Agent):
         return "You"
 
 
+class Concession(RuntimeError):
+    """Hack the control flow by raising error when conceding"""
+
+
+def _upper_conf_bound(v: float, n: int, z: float = 1.96) -> float:
+    """Calculate the approximate 95% upper bound of expected value"""
+    # not to be confused with ucb1 values
+    p = v / n
+    return p + z * math.sqrt(p * (1 - p) / n)
+
+
 @dataclass(frozen=True)
 class MctsAgent(Agent):
     n_iter: int = 1000
     reuse_cache: bool = False
     cache: Cache = field(default_factory=dict)
+    allow_concession: bool = False
 
     def next_move(self, game: Game) -> Move:
         root = Node(game=game)
@@ -70,6 +86,14 @@ class MctsAgent(Agent):
             search_iteration(node=root, engine=self.engine, cache=cache)
 
         edge = choose_edge(root.edges)
+        if not self.allow_concession:
+            return edge.move
+
+        # estimate worst best case probability to win, if below
+        # threshold, concede
+        ucb = _upper_conf_bound(v=edge.w, n=edge.s)
+        if ucb < CONCESSION_THRESHOLD:
+            raise Concession("{:.4f}".format(ucb))
         return edge.move
 
     def __repr__(self) -> str:
