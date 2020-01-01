@@ -74,12 +74,44 @@ class Player:
 MaybePlayer = Optional[Player]
 _Row = Tuple[int, int, int, int, int]
 _Triple = Tuple[int, int, int]
+_State = Tuple[_Row, _Row, _Row, _Row, _Row]
 
+STATES: List[_State] = [
+    ((0, 0, 0, 9, 9),
+     (9, 9, 9, 0, 9),
+     (9, 0, 0, 0, 9),
+     (0, 9, 9, 0, 0),
+     (0, 0, 0, 0, 0)),
+
+    ((0, 0, 0, 0, 0),
+     (0, 0, 9, 9, 0),
+     (0, 9, 0, 9, 0),
+     (9, 0, 0, 0, 0),
+     (0, 0, 0, 9, 0)),
+
+    ((0, 0, 0, 0, 0),
+     (0, 0, 9, 9, 0),
+     (0, 9, 0, 9, 0),
+     (9, 0, 0, 0, 0),
+     (0, 0, 0, 9, 0)),
+
+    ((0, 0, 0, 9, 0),
+     (9, 0, 9, 0, 0),
+     (0, 0, 0, 9, 9),
+     (0, 9, 0, 0, 0),
+     (0, 0, 0, 9, 9)),
+
+    ((0, 0, 0, 9, 0),
+     (9, 0, 9, 0, 0),
+     (0, 0, 0, 9, 9),
+     (0, 9, 0, 0, 0),
+     (0, 0, 0, 9, 9)),
+]
 
 @dataclass(frozen=True)
 @total_ordering
 class Board:
-    state: Tuple[_Row, _Row, _Row, _Row, _Row] = (
+    state: _State = (
         (0, 0, 0, 0, 0),
         (0, 0, 0, 0, 0),
         (0, 0, 0, 0, 0),
@@ -306,7 +338,10 @@ def _random_row() -> _Row:
     return (c(choices), c(choices), c(choices), c(choices), c(choices))
 
 
-def random_board() -> Board:
+def random_board(premade: bool=True) -> Board:
+    if premade:
+        return Board(random.choice(STATES))
+
     # 9 codes for blocked
     return Board((
         _random_row(),
