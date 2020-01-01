@@ -10,5 +10,5 @@ To run a server and check the outcome:
 
 ```bash
 python server.py
-firefox http://0.0.0.0:8081/src/static/index.html
+firefox http://0.0.0.0:8080/src/static/index.html
 ```
