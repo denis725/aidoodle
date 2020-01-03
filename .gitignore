@@ -11,4 +11,5 @@
 .coverage
 .coverage.*
 .vscode
-typescript/node_modules
+*-copy
+typescript/node_modules*

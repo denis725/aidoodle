@@ -1,0 +1,19 @@
+{
+  "name": "aidoodle",
+  "version": "1.0.0",
+  "description": "testing out AI in simple games",
+  "main": "src/run.js",
+  "dependencies": {
+    "typescript": "^3.7.4"
+  },
+  "devDependencies": {
+    "@babel/parser": "^7.7.7",
+    "@babel/types": "^7.7.4",
+    "@jest/types": "^24.9.0",
+    "eslint": "^6.8.0",
+    "jest": "^24.9.0",
+    "prettier": "^1.19.1",
+    "ts-jest": "^24.2.0",
+    "tslint": "^5.20.1"
+  }
+}
