@@ -74,4 +74,8 @@ const playGame = async () => {
     }
 };
 
-playGame();
+// Add event listener to button
+const button = document.getElementById("buttonStartGame");
+if (button) {
+    button.addEventListener("click", playGame, false);
+};
