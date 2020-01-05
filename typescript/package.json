@@ -98,12 +98,7 @@
       "yoda": "error"
     }
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged",
-      "pre-push": "eslint --max-warnings=0 'src/**/*.{js,jsx,ts,tsx}'"
-    }
-  },
+  "husky": {},
   "lint-staged": {
     "src/**/*.{js,jsx,ts,tsx,json,md}": [
       "prettier --single-quote --jsx-single-quote --write --print-width 120",
