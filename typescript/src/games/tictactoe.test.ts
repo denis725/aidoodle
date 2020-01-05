@@ -1,4 +1,4 @@
-import { Game, Board, Players, determineWinner } from './tictactoe.js';
+import { Game, Board, Players, determineWinner } from './tictactoe';
 
 const players: Players = [1, 2];
 
@@ -13,7 +13,7 @@ test('no winner', () => {
     let game: Game = { players: players, playerIdx: 0, board: board };
     expect(1).toBe(1);
     let winner = determineWinner(game);
-    expect(winner).toBe(null);
+    expect(winner).toBe(undefined);
 });
 
 // end

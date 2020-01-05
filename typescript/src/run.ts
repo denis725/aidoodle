@@ -1,5 +1,5 @@
-import { TicTacToeEngine, Board } from './games/tictactoe.js';
-import { Agent, nextMove } from './agents.js';
+import { TicTacToeEngine, Board } from './games/tictactoe';
+import { Agent, nextMove } from './agents';
 
 const ttt = TicTacToeEngine;
 
