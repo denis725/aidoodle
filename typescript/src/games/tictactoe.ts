@@ -85,11 +85,11 @@ const sumBoardDiag = (board: Board): [number, number] => {
 
 function* _movesPossible(board: Board): Generator<Move> {
     const indices: Idx[] = [0, 1, 2];
-    for (let i of indices) {
-        for (let j of indices) {
+    for (const i of indices) {
+        for (const j of indices) {
             if (tokenMap[board[i][j]] === 0) {
                 //yield new Move(i, j)
-                yield { i: i, j: j };
+                yield { i, j };
             }
         }
     }
@@ -105,26 +105,26 @@ const determineWinner = (game: Game): MaybePlayer => {
     const [player1, player2]: [Player, Player] = game.players;
 
     const [sumRow1, sumRow2]: [number, number] = sumBoardRow(board);
-    if (sumRow1 == 3) {
+    if (sumRow1 === 3) {
         return player1;
     }
-    if (sumRow2 == 3) {
+    if (sumRow2 === 3) {
         return player2;
     }
 
     const [sumCol1, sumCol2]: [number, number] = sumBoardCol(board);
-    if (sumCol1 == 3) {
+    if (sumCol1 === 3) {
         return player1;
     }
-    if (sumCol2 == 3) {
+    if (sumCol2 === 3) {
         return player2;
     }
 
     const [sumDiag1, sumDiag2]: [number, number] = sumBoardDiag(board);
-    if (sumDiag1 == 3) {
+    if (sumDiag1 === 3) {
         return player1;
     }
-    if (sumDiag2 == 3) {
+    if (sumDiag2 === 3) {
         return player2;
     }
 
@@ -132,7 +132,7 @@ const determineWinner = (game: Game): MaybePlayer => {
         return -1;
     }
 
-    return;
+    
 };
 
 const getNextPlayerIdx = (game: Game): PlayerIdx => {
@@ -153,7 +153,7 @@ const _makeRow = (row: Row, player: Player, j: Idx): Row => {
 
 const applyMove = (board: Board, move: Move, player: Player): Board => {
     const [i, j] = [move.i, move.j];
-    if (board[i][j] != ' ') {
+    if (board[i][j] !== ' ') {
         throw new Error('Invalid move');
     }
 
@@ -171,7 +171,7 @@ const makeMove = (game: Game, move: Move): Game => {
     const gameNew: Game = {
         players: game.players,
         playerIdx: playerIdxNext,
-        board: board,
+        board,
     };
     return gameNew;
 };
@@ -183,10 +183,10 @@ const initGame = (board?: Board, playerIdx?: PlayerIdx): Game => {
         board !== undefined
             ? board
             : [
-                  [' ', ' ', ' '],
-                  [' ', ' ', ' '],
-                  [' ', ' ', ' '],
-              ];
+                [' ', ' ', ' '],
+                [' ', ' ', ' '],
+                [' ', ' ', ' '],
+            ];
     const game: Game = {
         players: players_,
         playerIdx: playerIdx_,
@@ -218,11 +218,11 @@ interface BaseEngine {
 }
 
 const TicTacToeEngine: BaseEngine = {
-    determineWinner: determineWinner,
-    getLegalMoves: getLegalMoves,
-    initGame: initGame,
-    makeMove: makeMove,
-    scoreGame: scoreGame,
+    determineWinner,
+    getLegalMoves,
+    initGame,
+    makeMove,
+    scoreGame,
 };
 
 export { determineWinner, TicTacToeEngine, Game, Players };

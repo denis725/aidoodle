@@ -28,8 +28,8 @@ const mapBoardToTable = (board: Board) => {
         [2, 2],
     ];
     indices.forEach(indices => {
-        var elemName = 'f' + indices.join('');
-        var elem = document.getElementById(elemName);
+        const elemName = 'f' + indices.join('');
+        const elem = document.getElementById(elemName);
         if (elem) {
             elem.innerText = board[indices[0]][indices[1]];
         }
@@ -39,22 +39,22 @@ const mapBoardToTable = (board: Board) => {
 const playGame = async () => {
     var game = ttt.initGame();
     var idx: number = 0;
-    let agents = [agent1, agent2];
-    let phead = document.getElementById('phead');
+    const agents = [agent1, agent2];
+    const phead = document.getElementById('phead');
     if (phead) {
         phead.innerText = agents[0].kind + ' vs. ' + agents[1].kind;
     }
 
     while (!ttt.determineWinner(game)) {
-        var agent = agents[idx];
-        var move = nextMove(agent, game, TicTacToeEngine);
+        const agent = agents[idx];
+        const move = nextMove(agent, game, TicTacToeEngine);
         var game = ttt.makeMove(game, move);
         var idx: number = 1 - idx;
         mapBoardToTable(game.board);
         await sleep(500);
     }
 
-    let ptail = document.getElementById('ptail');
+    const ptail = document.getElementById('ptail');
     const winner = ttt.determineWinner(game);
     if (winner === 1) {
         const winnerAgent = agents[0].kind;
@@ -78,4 +78,4 @@ const playGame = async () => {
 const button = document.getElementById("buttonStartGame");
 if (button) {
     button.addEventListener("click", playGame, false);
-};
+}
