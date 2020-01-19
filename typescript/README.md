@@ -1,9 +1,15 @@
+To install dependencies, run:
+
+```bash
+yarn install
+```
+
 To transpile the typescript code:
 
 ```bash
-tsc --strictNullChecks -p tsconfig.json
+yarn tsc
 # or
-tsc --strictNullChecks -p tsconfig.json -w  # daemon
+yarn tsc --watch  # daemon
 ```
 
 To run a server and check the outcome:
