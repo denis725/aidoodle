@@ -1,108 +1,103 @@
 {
-  "name": "aidoodle",
-  "version": "1.0.0",
-  "description": "testing out AI in simple games",
-  "main": "src/run.js",
-  "private": true,
-  "repository": "*",
-  "license": "MIT",
-  "dependencies": {},
-  "devDependencies": {
-    "@types/jest": "^24.0.23",
-    "@types/lodash": "^4.14.149",
-    "@types/node": "^12.12.17",
-    "@typescript-eslint/eslint-plugin": "^2.11.0",
-    "@typescript-eslint/parser": "^2.11.0",
-    "babel-eslint": "^10.0.2",
-    "eslint": "^6.7.2",
-    "husky": "^3.1.0",
-    "jest": "^24.8.0",
-    "lint-staged": "^9.5.0",
-    "prettier": "^1.18.2",
-    "ts-jest": "^24.2.0",
-    "ts-node": "^8.5.4",
-    "typescript": "^3.7.3"
-  },
-  "scripts": {
-    "ci-install": "./install",
-    "ci-test": "CI=true STAGE=dev jest",
-    "ci-lint": "eslint --max-warnings=0 'src/**/*.{js,jsx,ts,tsx}' 'tests/**/*.{js,jsx,ts,tsx}'",
-    "test": "jest --watch",
-    "lint": "eslint --max-warnings=0 'src/**/*.{js,jsx,ts,tsx}' 'tests/**/*.{js,jsx,ts,tsx}'",
-    "build": "./package",
-    "format": "prettier --single-quote --jsx-single-quote --write --print-width 120 'src/**/*.{js,jsx,ts,tsx}' 'tests/**/*.{js,jsx,ts,tsx}'"
-  },
-  "jest": {
-    "roots": [
-      "src",
-      "tests"
-    ],
-    "moduleDirectories": [
-      "node_modules",
-      "./"
-    ],
-    "preset": "ts-jest"
-  },
-  "eslintConfig": {
-    "env": {
-      "node": true,
-      "es2017": true,
-      "jest": true
+    "name": "aidoodle",
+    "version": "1.0.0",
+    "description": "testing out AI in simple games",
+    "main": "src/run.js",
+    "private": true,
+    "repository": "*",
+    "license": "MIT",
+    "dependencies": {},
+    "devDependencies": {
+        "@types/jest": "^24.0.23",
+        "@types/lodash": "^4.14.149",
+        "@types/node": "^12.12.17",
+        "@typescript-eslint/eslint-plugin": "^2.11.0",
+        "@typescript-eslint/parser": "^2.11.0",
+        "babel-eslint": "^10.0.2",
+        "eslint": "^6.7.2",
+        "husky": "^3.1.0",
+        "jest": "^24.8.0",
+        "lint-staged": "^9.5.0",
+        "prettier": "^1.18.2",
+        "ts-jest": "^24.2.0",
+        "ts-node": "^8.5.4",
+        "typescript": "^3.7.3"
     },
-    "extends": [
-      "eslint:recommended"
-    ],
-    "parser": "@typescript-eslint/parser",
-    "plugins": [
-      "@typescript-eslint"
-    ],
-    "parserOptions": {
-      "sourceType": "module"
+    "scripts": {
+        "test": "jest --watch",
+        "lint": "eslint --max-warnings=0 'src/**/*.{js,jsx,ts,tsx}'",
+        "format": "prettier --single-quote --jsx-single-quote --write --print-width 120 'src/**/*.{js,jsx,ts,tsx}'"
     },
-    "rules": {
-      "camelcase": "error",
-      "consistent-return": "error",
-      "dot-location": [
-        "error",
-        "property"
-      ],
-      "dot-notation": "error",
-      "eqeqeq": "error",
-      "no-alert": "error",
-      "no-duplicate-imports": "error",
-      "no-eval": "error",
-      "no-extend-native": "error",
-      "no-lone-blocks": "error",
-      "no-nested-ternary": "error",
-      "no-new-func": "error",
-      "no-return-assign": "error",
-      "no-return-await": "error",
-      "no-self-compare": "error",
-      "no-sequences": "error",
-      "no-template-curly-in-string": "error",
-      "no-throw-literal": "error",
-      "no-unused-vars": "off",
-      "no-unused-expressions": "error",
-      "no-useless-call": "error",
-      "no-useless-computed-key": "error",
-      "no-useless-concat": "error",
-      "no-useless-constructor": "error",
-      "no-useless-rename": "error",
-      "no-useless-return": "error",
-      "no-var": "error",
-      "object-shorthand": "error",
-      "prefer-arrow-callback": "error",
-      "prefer-const": "error",
-      "prefer-spread": "error",
-      "require-await": "error",
-      "yoda": "error"
+    "jest": {
+        "roots": [
+            "src"
+        ],
+        "moduleDirectories": [
+            "node_modules",
+            "./"
+        ],
+        "preset": "ts-jest"
+    },
+    "eslintConfig": {
+        "env": {
+            "node": true,
+            "es2017": true,
+            "jest": true
+        },
+        "extends": [
+            "eslint:recommended"
+        ],
+        "parser": "@typescript-eslint/parser",
+        "plugins": [
+            "@typescript-eslint"
+        ],
+        "parserOptions": {
+            "sourceType": "module"
+        },
+        "rules": {
+            "camelcase": "error",
+            "consistent-return": "error",
+            "dot-location": [
+                "error",
+                "property"
+            ],
+            "dot-notation": "error",
+            "eqeqeq": "error",
+            "no-alert": "error",
+            "no-duplicate-imports": "error",
+            "no-eval": "error",
+            "no-extend-native": "error",
+            "no-lone-blocks": "error",
+            "no-nested-ternary": "error",
+            "no-new-func": "error",
+            "no-return-assign": "error",
+            "no-return-await": "error",
+            "no-self-compare": "error",
+            "no-sequences": "error",
+            "no-template-curly-in-string": "error",
+            "no-throw-literal": "error",
+            "no-unused-vars": "off",
+            "no-unused-expressions": "error",
+            "no-useless-call": "error",
+            "no-useless-computed-key": "error",
+            "no-useless-concat": "error",
+            "no-useless-constructor": "error",
+            "no-useless-rename": "error",
+            "no-useless-return": "error",
+            "no-var": "error",
+            "object-shorthand": "error",
+            "prefer-arrow-callback": "error",
+            "prefer-const": "error",
+            "prefer-spread": "error",
+            "require-await": "error",
+            "yoda": "error"
+        }
+    },
+    "husky": {},
+    "lint-staged": {
+        "src/**/*.{js,jsx,ts,tsx,json,md}": [
+            "prettier --single-quote --jsx-single-quote --write --print-width 120",
+            "git add"
+        ]
     }
-  },
-  "husky": {},
-  "lint-staged": {
-    "src/**/*.{js,jsx,ts,tsx,json,md}": [
-      "prettier --single-quote --jsx-single-quote --write --print-width 120",
-      "git add"
-    ]
-  }
 }
