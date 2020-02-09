@@ -8,7 +8,7 @@ const agent1: Agent = {
 };
 
 const agent2: Agent = {
-    kind: 'foo',
+    kind: 'mcts',
 };
 
 function sleep(ms: number) {

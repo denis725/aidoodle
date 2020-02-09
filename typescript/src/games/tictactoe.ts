@@ -1,5 +1,7 @@
+import { sum } from '../utils';
+
 // -1->tied, 1->player 1, 2->player2
-type Player = -1 | 1 | 2;
+export type Player = -1 | 1 | 2;
 type Players = [Player, Player];
 type MaybePlayer = Player | void;
 type PlayerIdx = 0 | 1; // 0->player 1, 1->player 2
@@ -25,10 +27,6 @@ interface Game {
     players: Players;
     playerIdx: PlayerIdx;
     board: Board;
-}
-
-const sum = (arr: number[]): number => {
-    return arr.reduce((x, y) => x + y, 0);
 };
 
 /* const transpose2 = <T extends unknown>(board: Array<Array<T>>): Array<Array<T>> => {
@@ -36,6 +34,14 @@ const sum = (arr: number[]): number => {
     return board[0].map((_, i) => board.map(row => row[i]));
 };
  */
+
+export const gameToString = (game: Game): string => {
+    const board = game.board;
+    const s: string = board.map(
+        (row) => row.join(",")
+    ).join("|");
+    return s;
+};
 
 const transpose = (board: Board): Board => {
     return [
@@ -131,8 +137,6 @@ const determineWinner = (game: Game): MaybePlayer => {
     if (_NoPossibleMove(game.board)) {
         return -1;
     }
-
-    
 };
 
 const getNextPlayerIdx = (game: Game): PlayerIdx => {
@@ -152,6 +156,7 @@ const _makeRow = (row: Row, player: Player, j: Idx): Row => {
 };
 
 const applyMove = (board: Board, move: Move, player: Player): Board => {
+    console.log(move);
     const [i, j] = [move.i, move.j];
     if (board[i][j] !== ' ') {
         throw new Error('Invalid move');
@@ -209,7 +214,7 @@ const scoreGame = (game: Game): number => {
     throw Error('Illegal player');
 };
 
-interface BaseEngine {
+export interface BaseEngine {
     determineWinner: (game: Game) => MaybePlayer;
     getLegalMoves: (game: Game) => Move[];
     initGame: (board?: Board, playerIdx?: PlayerIdx) => Game;

@@ -1,4 +1,6 @@
 import { Game, Move } from './games/tictactoe';
+import { randChoice } from './utils';
+import { mctsMove } from './mcts';
 
 
 interface RandomAgent {
@@ -9,22 +11,25 @@ interface FooAgent {
     kind: "foo";
 }
 
-export type Agent = RandomAgent | FooAgent;
-
-function choice<T>(options: Array<T>): T {
-    const idx = Math.floor(Math.random() * options.length);
-    return options[idx];
+interface MctsAgent {
+    kind: "mcts";
 }
+
+export type Agent = RandomAgent | FooAgent | MctsAgent;
 
 export const nextMove = (agent: Agent, game: Game, engine: any): Move => {
     switch (agent.kind) {
         case "random": {
-            const move: Move = choice(engine.getLegalMoves(game));
+            const move: Move = randChoice(engine.getLegalMoves(game));
             return move;
         }
         case "foo": {
             const move: Move = engine.getLegalMoves(game)[0];
             return move;
         }
-    }
+        case "mcts": {
+            const move = mctsMove(game, engine);
+            return move;
+        }
+    };
 };
