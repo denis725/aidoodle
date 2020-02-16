@@ -69,12 +69,9 @@ const expand = (node: Node, engine: BaseEngine) => {
 const simulate = (game: Game, engine: BaseEngine): number => {
     var newGame = engine.initGame(game.board, game.playerIdx);
 
-    let winner = engine.determineWinner(newGame);
-    while (winner === undefined) {
+    while (engine.determineWinner(newGame) === undefined) {
         var move = randChoice(engine.getLegalMoves(newGame));
         var newGame = engine.makeMove(newGame, move);
-        console.log(game);
-        console.log(move);
     };
 
     const score = engine.scoreGame(newGame);
@@ -91,11 +88,10 @@ const update = (edges: Edges, players: Players, value: number) => {
         throw new Error("Number of edges and number of players not equal");
     };
 
-    const valueOther = 1 - value;
-    for (let i = 0; edges.length; i++) {
+    for (let i = 0; i < edges.length; i++) {
         var edge = edges[i];
         var player = players[i];
-        (player === 1) ? updateEdge(edge, value) : updateEdge(edge, valueOther);
+        (player === 1) ? updateEdge(edge, value) : updateEdge(edge, 1 - value);
     };
 };
 
