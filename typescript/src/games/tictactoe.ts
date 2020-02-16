@@ -156,7 +156,6 @@ const _makeRow = (row: Row, player: Player, j: Idx): Row => {
 };
 
 const applyMove = (board: Board, move: Move, player: Player): Board => {
-    console.log(move);
     const [i, j] = [move.i, move.j];
     if (board[i][j] !== ' ') {
         throw new Error('Invalid move');

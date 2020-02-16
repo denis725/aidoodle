@@ -21,14 +21,14 @@ const playGame = (agent0: Agent, agent1: Agent, engine: BaseEngine): Player => {
 };
 
 test('test that mcts beats random on average', () => {
-    const agent0: Agent = { kind: 'random' };
-    const agent1: Agent = { kind: 'mcts' };
+    const agent1: Agent = { kind: 'random' };
+    const agent2: Agent = { kind: 'mcts' };
     const n = 100;
     var wins1 = 0;
     var wins2 = 0;
     var ties = 0;
-    for (let _ = 0; n; _++) {
-        let winner = playGame(agent0, agent1, TicTacToeEngine);
+    for (let i = 0; i < n; i++) {
+        let winner = playGame(agent1, agent2, TicTacToeEngine);
         if (winner === -1) {
             ties += 1;
         } else if (winner === 1) {

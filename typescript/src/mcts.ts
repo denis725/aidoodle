@@ -145,11 +145,11 @@ export const mctsMove = (game: Game, engine: BaseEngine): Move => {
     const root: Node = { game: game, edges: edges };
     const cache: Cache = {};
 
-    for (let _ = 0; N_ITER; _++) {
+    for (let i = 0; i < N_ITER; i++) {
         search(root, engine, cache);
     };
 
-    const values = edges.map((edge) => edge.s)
+    const values = root.edges.map((edge) => edge.s)
     const edge = selectmax(root.edges, values);
     return edge.move;
 }
