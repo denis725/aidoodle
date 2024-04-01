@@ -14,6 +14,7 @@ Games:
 * a simple dice game
 * a simple battle game
 
+
 AIs:
 
 * random
